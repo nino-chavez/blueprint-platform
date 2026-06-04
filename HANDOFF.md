@@ -17,8 +17,8 @@
 Building in a **worktree of `tools/blueprint`** at `~/Workspace/dev/wip/blueprint-substrate-build` on branch **`platform/substrate`** (base `main` 010945a). Source-touching work lands there; the operator merges to `main` as a wave when the substrate is reviewed.
 
 - [x] **Step 0 — `BLUEPRINT_HOME` resolver** (`ca273d2`). Hook resolves env → `blueprint.yml methodology_home` → local canonical → npm-installed `@nino-chavez/blueprint-cli` (candidate must hold METHODOLOGY.md); stale `wip/blueprint` default + `stamp.mjs` generated-path leaks + `big-blueprint` ref killed. Tested (syntax + 4 resolver cases + end-to-end JSON).
-- [ ] **Step 1 — semver baseline** — Changesets + first `VERSION` + `CHANGELOG.md` (ADR-0007). Verify `@blueprint` org claimability or ship `@nino-chavez/blueprint-cli`.
-- [ ] **Step 2 — `@nino-chavez/blueprint-cli`** — root `package.json` + thin ESM dispatcher (reuse `stamp.mjs` parseArgs); subcommands stubbed; JS resolver lib mirroring the hook's order.
+- [x] **Step 1 — semver baseline** (`3a22923`). `package.json` `@nino-chavez/blueprint-cli` 0.1.0 (single version source, no VERSION file); `.changeset/` config + README (migration-note discipline); `CHANGELOG.md` 0.1.0 baseline; `.github/workflows/release.yml` (dormant until `NPM_TOKEN`); hook version-banner (flags consumer pin drift → `blueprint upgrade`). Tested. `@blueprint/cli` still pending org claim — shipped scoped.
+- [ ] **Step 2 — CLI dispatcher** — `bin/blueprint.mjs` thin ESM dispatcher (reuse `stamp.mjs` parseArgs) + a JS resolver lib (`template/tools/lib/blueprint-home.mjs`) mirroring the hook's resolution order; subcommands stubbed (init/review/upgrade/fleet/cost/doctor); add `bin` to package.json.
 - [ ] **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
 
 ## Pending operator inputs (non-blocking)
