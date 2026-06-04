@@ -21,6 +21,13 @@ Building in a **worktree of `tools/blueprint`** at `~/Workspace/dev/wip/blueprin
 - [ ] **Step 2 — CLI dispatcher** — `bin/blueprint.mjs` thin ESM dispatcher (reuse `stamp.mjs` parseArgs) + a JS resolver lib (`template/tools/lib/blueprint-home.mjs`) mirroring the hook's resolution order; subcommands stubbed (init/review/upgrade/fleet/cost/doctor); add `bin` to package.json.
 - [ ] **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
 
+## Portal harness track (parallel to the substrate build)
+
+The Blueprint portal SHELL is the canonical harness/index to all deliverables (not a bespoke analysis portal — see memory `blueprint-portal-is-the-harness`). Flipped `portal_pattern` **B → A** (platform-portal fits a platform; bc-subscriptions is the Pattern A reference).
+
+- [x] **Shell stamped** (`e38ddb7`) — `apps/portal` (Astro IA contract discover/try/build/operate/inspect/roadmap) + `packages/{ui,design-tokens}` via `stamp.mjs --pattern=A`. `blueprint.yml` preserved; evidence untouched. Amendment filed (stamper mechanical-check false-positives on evidence docs citing the example project).
+- [ ] **Populate IA routes with this initiative's deliverables** — `discover` ← charter (what the platform is); `inspect` ← gap scorecard + ADR-0003..0007 + research evidence; `roadmap` ← the 14-step build order + track progress; `try` ← `npx @nino-chavez/blueprint-cli init`; `build`/`operate` ← usage. Replace the bc-subs placeholder content in `apps/portal/src/lib/{status,scenarios}.ts` + pages. Then `cd apps/portal && npm install && npm run dev` to verify; deploy to Cloudflare Pages.
+
 ## Pending operator inputs (non-blocking)
 - npm scope: defaulted to `@nino-chavez/blueprint-cli`; redirect if registering the `@blueprint` org.
 - Merge `platform/substrate` → `tools/blueprint` main as a wave once the substrate is reviewed.
