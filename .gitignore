@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+.wrangler/
+.audit-tmp/
+.playwright-mcp/
+*.log
+.env
+.env.*
+dist/

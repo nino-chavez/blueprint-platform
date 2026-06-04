@@ -1,0 +1,106 @@
+# Blueprint Configuration — wip/blueprint-platform
+# Created 2026-06-04. Blueprint applied to itself, productization pass.
+#
+# Current-state product:  the Blueprint methodology source at ~/Workspace/dev/tools/blueprint/
+#                         (+ its v1-solo self-application at ~/Workspace/dev/wip/blueprint-redesign/)
+# Proposed-state product: Blueprint as a team-adoptable, portable platform —
+#                         configurable cost, org access control, bidirectional
+#                         non-breaking update distribution, onboarding ramp.
+#
+# This EXTENDS blueprint-redesign (which ratified the v1-solo architecture in
+# ADR-0001/ADR-0002 and deliberately deferred the four productization
+# requirements below to "v2 / out-of-scope / Never"). Those ADRs are inherited
+# verbatim — NOT re-decided. See decisions/00-charter.md.
+
+project:
+  name: "blueprint-platform"
+  description: "Productize the Blueprint methodology into a team-adoptable, portable platform: configurable cost-efficiency, org-scale access control, bidirectional non-breaking update distribution, full docs, and an onboarding/enablement ramp."
+  product: "Blueprint methodology"
+  audience:
+    leadership: []
+    engineering: []
+    broader:
+      - "Teams adopting Blueprint across departments"
+      - "Non-Nino operators running their first initiative"
+      - "Org contributors filing reviewers / amendments from the field"
+
+# ──────────────────────────────────────────────────────────────────
+# Pilot profile (REQUIRED — Stage 0 → Stage 1 gate)
+# Reference: ~/Workspace/dev/tools/blueprint/template/docs/methodology/pilot-profile-template.md
+# ──────────────────────────────────────────────────────────────────
+pilot_profile:
+  slug: "department-team-adopter"
+  display_name: "Department team adopting Blueprint (multi-operator, not solo-Nino)"
+  pain_point: "A team that wants to run initiatives with Blueprint cannot adopt it without re-deriving shape from a single operator's machine: paths are hardcoded, there is no cost dial, no access model, no way to receive non-breaking updates or contribute fixes back, and no onboarding ramp — so adoption stalls at 'read METHODOLOGY.md and hope.'"
+  monetization_side: "operator"   # platform-owner / methodology-operator side, not the consumer product's end-user
+  walkthrough_citation: "research/00-recon-synthesis.md"   # 6-agent recon, 2026-06-04; full transcript referenced therein
+  competitors_in_scope:
+    - "Backstage (Spotify) — internal developer platform, golden paths, plugin catalog, software catalog"
+    - "Spec Kit (OpenAI) — spec-first AI engineering toolkit"
+    - "Cookiecutter / Yeoman / Hygen — scaffolders (distribution shape only, no methodology/governance)"
+    - "Shape Up / Linear — methodology + workflow shape"
+    - "ai-hive (companion) — multi-operator coordination substrate Blueprint integrates with, does NOT absorb"
+  out_of_scope_pilots:
+    - "End-user of a consumer product built with Blueprint (e.g., a coach using rally-hq) — pilot of the consumer, not of Blueprint"
+    - "The AI agent as pilot — agent is executor; the human team is the pilot"
+    - "External commercial SaaS customer with billing/SOC2 — see scope-ceiling decision (decisions/00-charter.md § Open decision)"
+
+# Pipeline shape — brownfield. Blueprint exists, works, ships to 6 named
+# consumers, and has a deployed reference portal. We evolve it, preserving what
+# works (ADR-0001/0002, the stamper, the reviewer specs, the portal chrome).
+# See: ~/Workspace/dev/tools/blueprint/docs/variant-selection.md
+variant: brownfield
+
+# Deliverable sophistication — Tier 2. Unlike blueprint-redesign (Tier 1, portal
+# only), this initiative ships real new product surfaces alongside the portal:
+# @blueprint/cli, executable .mjs reviewers, a versioned update channel, and a
+# thin coordination control plane (pending the scope-ceiling decision).
+# See: ~/Workspace/dev/tools/blueprint/docs/portal-and-tier-ladder.md
+tier: 2
+
+# Portal pattern — B. The onboarding/enablement hub reskins the blueprint-redesign
+# Pattern B portal chrome from "our v1 gaps" to "start here". Strategy drawer
+# explains why the productized shape diverges from the solo-operator current state.
+portal_pattern: B
+
+execution:
+  depth: thorough
+  # thorough: this initiative defines how Blueprint ships to teams going forward;
+  # full research + design-constraints + prototypes of the 4 net-new surfaces +
+  # fact-check against a real second consumer + ADRs + onboarding ramp.
+
+# Methodology version this initiative is pinned to.
+# NOTE: no semver exists in the methodology repo yet (tags are dogfood-v1/v2/v3
+# only, no CHANGELOG). Establishing semver IS the first deliverable of the
+# distribution track. Until then we pin to the source HEAD sha.
+methodology_version: "010945a"   # ~/Workspace/dev/tools/blueprint @ 2026-06-04
+
+# Companion — ai-hive. Integrate, do NOT absorb (prescription: "companion stays
+# separate / Never"). Blueprint owns methodology; ai-hive owns identity,
+# coordination, persistence. Multi-operator + access-control build ON ai-hive's
+# Worker + D1 + bearer-token substrate. See decisions/00-charter.md § Fork 1.
+hive:
+  enabled: false
+  # The platform DESIGNS multi-operator; the platform initiative can run solo
+  # initially. Flip true once the identity layer lands and a second operator joins.
+
+cloudflare:
+  enabled: true
+  # Pattern B onboarding portal deploys as a Cloudflare Pages project. Any thin
+  # control-plane surface (registry / update-feed / triage) reuses the ai-hive
+  # Worker + D1 family, not a net-new auth/multi-tenant stack.
+
+# ──────────────────────────────────────────────────────────────────
+# Productization tracks (expanded beyond the operator's original 6 requirements;
+# architect-surfaced additions marked [+]). Full rationale + gap status +
+# closing pattern + reusable foundation: decisions/00-charter.md.
+# ──────────────────────────────────────────────────────────────────
+# A. Distribution & Versioning  — portable, bidirectional updates, [+]consumer
+#                                  registry/fleet, [+]semver+deprecation, [+]contract tests
+# B. Configurability & Cost      — cost dial, [+]telemetry/observability, [+]FinOps budgets
+# C. Access & Governance         — access control, [+]contribution/promotion governance,
+#                                  [+]security/supply-chain, [+]licensing/IP model, [+]identity
+# D. Extensibility               — [+]plugin model (org-authored reviewers/stages), [+]catalog
+# E. Adoption & Enablement       — documented, onboarding ramp, [+]role-based paths,
+#                                  [+]support/escalation, [+]conformance certification
+# F. Team / Multi-operator       — team-adoptable, ai-hive integration
