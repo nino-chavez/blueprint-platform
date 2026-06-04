@@ -11,6 +11,8 @@ informs:
   - "ADR-0004 native access + governance"
   - "ADR-0005 bidirectional non-breaking update protocol"
   - "ADR-0006 native extensibility (org-authored reviewers)"
+  - "ADR-0007 versioning + distribution toolchain"
+grounded_by: "research/01-canonical-research.md (Stage 1 canonical-pattern research)"
 ratified_by: "pending — first non-Nino team consumer (per charter solo-degrade path)"
 ---
 
@@ -94,6 +96,27 @@ Multi-tenant SaaS, auth server, billing, SOC2, hosted multi-tenant isolation. Ab
 | **+ identity** | Git-host users (GitHub/GitLab). No identity server. |
 | **+ registry** | Manifest (`consumers.yml`) + `blueprint fleet`. No registry service. |
 
-## Order rationale
+## Order rationale + research-refined build order
 
-Items 1–4 are the unbuilt v1 substrate (semver, paths, CLI, reviewers) — they must exist before 5–10 can be validated against anything real. 5–10 are the productization superset; each ships as a runnable artifact a non-Nino operator on a different machine can execute. Stage 4 Fact-Check verifies the bidirectional channel against a **real second consumer**, not by assertion (the wave-2 lesson).
+The 10 items above are now grounded by Stage 1 canonical research (`research/01-canonical-research.md`) and decided in ADR-0003..0007. The refined smallest-first order (one correction: `BLUEPRINT_HOME` is step **0**, before the package wiring — it gates every CLI subcommand and the researchers underweighted it):
+
+```
+0  BLUEPRINT_HOME resolver            (portability precondition — gates the CLI)
+1  Semver baseline                    (Changesets + VERSION + CHANGELOG)        ADR-0007
+2  @nino-chavez/blueprint-cli         (package.json + thin ESM dispatcher)      ADR-0007
+3  .mjs reviewer pairs + CI           (ADR-0002 contract; unblocks 6 + 11)
+4  Cost-dial config                   (cost: block, frontmatter materialize)    ADR-0003
+5  Telemetry + `blueprint cost`       (anchors emerge here)                     ADR-0003
+6  Skip-justification gate            (needs 3 + 4)                             ADR-0003
+7  consumers.yml + `blueprint fleet`  (generalize stamp.mjs classifier)        ADR-0005
+8  `blueprint upgrade`                (needs 1 + 7)                             ADR-0005
+9  Access + governance artifacts      (ONE wave, freeze waiver)                ADR-0004
+10 Triage Action                      (needs 9)                                ADR-0004
+11 Extensibility                      (loader + validator + catalog; needs 3)  ADR-0006
+12 `blueprint doctor`                 (runtime tier; needs 3 + 0)
+13 Enablement reskin                  (portal start-here; land in consumer)
+```
+
+Steps 0–3 are the unbuilt v1 substrate — they must exist before 4–13 validate against anything real (charter risk #2). Steps 9 + 1 + 2 + 3 touch `tools/blueprint` source (root `package.json`, CI, CODEOWNERS, `.mjs` reviewers) — each lands under a **methodology-freeze waiver**, batched. Stage 4 Fact-Check verifies the bidirectional channel against a **real second consumer**, not by assertion (the wave-2 lesson).
+
+**Open question resolved:** npm name = `@nino-chavez/blueprint-cli` (`blueprint`/`blueprint-cli` unscoped taken; `@blueprint/cli` aspirational pending org registration; `bin` is `blueprint` regardless).

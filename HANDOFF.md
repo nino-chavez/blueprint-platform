@@ -1,7 +1,7 @@
 # HANDOFF — blueprint-platform
 
 **Date:** 2026-06-04
-**State:** Stage 0–2 drafted. Project spun up, charter drafted, **scope ceiling resolved (A — methodology-native)**, prescription drafted. Git repo on `main`, scaffold **staged, not committed** (awaiting operator's word per commit-only-when-asked).
+**State:** Stages 0–2 done + ADRs drafted. Project committed (`2c31137`). Scope ceiling A resolved. Stage 1 canonical research complete (`research/01`). ADR-0003..0007 drafted (status: proposed, grounded). Prescription carries the research-refined 14-step build order. Next: Stage 3 build.
 
 ## What landed
 - Project scaffolded at `~/Workspace/dev/wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
@@ -12,11 +12,18 @@
 ## Blocking decision — RESOLVED
 **Scope ceiling: A (methodology-native only)** (operator, 2026-06-04). No hosted service. See charter § Resolved + `decisions/01-prescription.md § Design invariant`.
 
-## Next move
-1. **Stage 1 canonical-pattern research** (running): per-track, read vendor canonical (semver/changesets, GitHub CODEOWNERS+rulesets, Backstage plugin model, Diataxis, npm dist, Claude-Code effort-level analog) + internal reference impls under `~/Workspace/dev` (specchain, forge-*, ai-hive, claude-recall-cli). Feeds ADR-0003..0006.
-2. Author ADR-0003 (cost dial) → 0006 (extensibility), grounded in #1.
-3. Stage 3 prototype: build v1 substrate first (semver → BLUEPRINT_HOME → thin CLI → one `.mjs` reviewer), then the superset slices.
-4. Initial commit on operator's word.
+## Next move — Stage 3 build (substrate first)
+Per the prescription's refined order, smallest-first, each source-touching step under a freeze waiver:
+1. **Step 0 — `BLUEPRINT_HOME` resolver** — one resolver replacing 29 hardcoded paths + the stale SessionStart hook default. Portability precondition; gates the CLI.
+2. **Step 1 — semver baseline** — Changesets wired + first `VERSION` + `CHANGELOG.md` (ADR-0007).
+3. **Step 2 — `@nino-chavez/blueprint-cli`** — root `package.json` + thin ESM dispatcher (reuse `stamp.mjs` parseArgs), subcommands stubbed.
+4. **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
+
+Source-touching steps (1/2/3/9) need a **methodology-freeze waiver** before landing in `tools/blueprint`. Confirm waiver authority before step 1.
+
+## Pending operator inputs (non-blocking)
+- npm scope: defaulted to `@nino-chavez/blueprint-cli`; redirect if registering the `@blueprint` org.
+- Freeze waiver for the source-touching build steps.
 
 ## Standing constraints
 - **Methodology freeze:** no edits to `tools/blueprint/template/` without an explicit operator waiver. Promote upstream via cross-repo PR / wave.
