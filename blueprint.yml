@@ -58,10 +58,16 @@ variant: brownfield
 # See: ~/Workspace/dev/tools/blueprint/docs/portal-and-tier-ladder.md
 tier: 2
 
-# Portal pattern — B. The onboarding/enablement hub reskins the blueprint-redesign
-# Pattern B portal chrome from "our v1 gaps" to "start here". Strategy drawer
-# explains why the productized shape diverges from the solo-operator current state.
-portal_pattern: B
+# Portal pattern — A (platform-portal-as-harness). Corrected from B 2026-06-04:
+# Blueprint ships a portal SHELL that is the harness/index to everything an
+# initiative delivers (bc-subscriptions is the canonical Pattern A reference).
+# The IA contract fits this initiative exactly — discover (what the platform is),
+# try (npx init), build (run an initiative), operate (fleet/upgrade/cost), inspect
+# (the ADRs + research evidence), roadmap (the build tracks). Instantiated via the
+# stamper (stamp.mjs --mode=stamp --pattern=A), not hand-built. "Why not B": B is
+# the redesign-review (current-vs-proposed) shape; this initiative is a platform
+# whose harness indexes deliverables, which is precisely Pattern A.
+portal_pattern: A
 
 execution:
   depth: thorough

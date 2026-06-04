@@ -1,0 +1,21 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { TryNav } from '@/components/TryNav';
+import { ScenarioList } from '@/components/ScenarioList';
+import { loadScenarios } from '@/lib/scenarios';
+
+const scenarios = loadScenarios();
+---
+<Layout title="Scenarios — Try" description="Guided click-path demos across all surfaces.">
+  <header class="mb-6 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-success">Try → Scenarios</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      Guided scenarios.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      {scenarios.scenarios.length} scripted demos covering shopper, merchant, and support flows. Each scenario maps to BRD acceptance criteria and shows per-surface readiness — click to open the live surface.
+    </p>
+  </header>
+  <TryNav currentPath={Astro.url.pathname} />
+  <ScenarioList data={scenarios} />
+</Layout>

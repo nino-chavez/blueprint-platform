@@ -1,0 +1,51 @@
+<!--
+  REPLACE_FOR_PROJECT — this file contains example business content carried over
+  from the bc-subscriptions reference initiative. Rewrite or delete before sharing
+  with stakeholders. The portal-pattern-a-conformance-reviewer treats this banner
+  as a block — resolve before sharing with stakeholders.
+-->
+---
+import Layout from '@/layouts/Layout.astro';
+import { InspectNav } from '@/components/InspectNav';
+import { DependencyView } from '@/components/SubstrateDashboards';
+import { DependencyGraph } from '@/components/DependencyGraph';
+import {
+  loadDependencies,
+  loadDepGraph,
+  loadEpicCompletions,
+} from '@/lib/status';
+
+const deps = loadDependencies();
+const dag = loadDepGraph();
+const completionsMap = loadEpicCompletions();
+const completions = Object.fromEntries(completionsMap);
+const generatedAt = dag.generated_at.replace('T', ' ').slice(0, 16) + 'Z';
+---
+<Layout title="Dependencies — Inspect" description="Epic-level dependency DAG + top blockers.">
+  <header class="mb-6 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-contrast-500">Inspect → Dependencies</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      Dependencies.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      Epic-level dependency DAG — 27 <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">[Epic-N]</code> umbrella proposals wired by <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">hive-meta.blocked_by</code>. Columns are topological depth; the highlighted ring marks the critical path (longest non-shipped chain) — the GA route. For what's ready to claim now, see <a class="text-brand hover:underline" href="/roadmap">Roadmap → Ready queue</a>.
+    </p>
+  </header>
+
+  <InspectNav currentPath={Astro.url.pathname} />
+
+  <DependencyGraph
+    client:load
+    data={dag}
+    completions={completions}
+    generatedAt={generatedAt}
+  />
+
+  <section class="mt-10">
+    <h2 class="mb-3 font-heading text-xl font-semibold tracking-tight">Top blockers</h2>
+    <p class="mb-4 text-sm leading-relaxed text-contrast-500">
+      Slice-level detail beneath the epic DAG above. These are the individual open proposals whose closure would unblock the largest number of other open work items.
+    </p>
+    <DependencyView deps={deps} />
+  </section>
+</Layout>

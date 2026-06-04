@@ -1,0 +1,29 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { RoadmapView } from '@/components/RoadmapView';
+import { loadBoard, loadEpicProgress } from '@/lib/derived';
+
+const board = loadBoard();
+const epicProgress = loadEpicProgress();
+---
+<Layout title="Roadmap" description="What's in flight, what's queued, what's coming.">
+  <header class="mb-10 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-brand">Roadmap</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      Where it's going.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      Forward-looking view of open work. The horizon, phase, and epic bands are derived from
+      <code class="font-mono text-xs">tools/hive-board-derive</code> and
+      <code class="font-mono text-xs">tools/state-derive/epic-footprints</code>. For the
+      spec-coverage view (what's been mapped vs. shipped against the BRD/ADRs/NFRs), see
+      <a class="text-brand hover:underline" href="/inspect#coverage">Inspect → Coverage</a>.
+    </p>
+  </header>
+
+  <RoadmapView board={board} epicProgress={epicProgress} />
+
+  <footer class="mt-12 font-mono text-[10px] uppercase tracking-wide text-contrast-400">
+    board @ {board.generatedAt.slice(0, 10)} · epic-footprints @ {epicProgress.generatedAt.slice(0, 10)} · commit {epicProgress.sourceCommit.slice(0, 8)}
+  </footer>
+</Layout>

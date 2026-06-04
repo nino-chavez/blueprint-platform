@@ -1,0 +1,32 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { ExcerptCard } from '@/components/ExcerptCard';
+import { loadExcerpt } from '@/lib/content';
+
+const positioning = loadExcerpt('STRATEGY.md', /Positioning thesis/i);
+const whyNow      = loadExcerpt('STRATEGY.md', /Why a BC-blessed default subscriptions app/i);
+const personas    = loadExcerpt('BRD.md', /^(\d+\.\s+)?Personas$/);
+const valueProp   = loadExcerpt('PRD.md', /Strategic Positioning/i);
+const marketGap   = loadExcerpt('PRD.md', /The Gap in BigCommerce/i);
+const positioning2 = loadExcerpt('STRATEGY.md', /Subscription-type taxonomy/i);
+---
+<Layout title="Discover" description="North star, value proposition, the bet we are placing.">
+  <header class="mb-10 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-brand">Discover</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      North star, value prop, the bet.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      Strategy and motivation — what we are building, who it is for, why now. Each card excerpts the canonical source (STRATEGY.md / PRD.md / BRD.md); click through to read the full section.
+    </p>
+  </header>
+
+  <section class="mt-10 grid gap-4 md:grid-cols-2">
+    <ExcerptCard title="Positioning thesis" excerpt={positioning} />
+    <ExcerptCard title="Why now" excerpt={whyNow} />
+    <ExcerptCard title="The gap in BigCommerce" excerpt={marketGap} />
+    <ExcerptCard title="Strategic positioning" excerpt={valueProp} />
+    <ExcerptCard title="Personas" excerpt={personas} />
+    <ExcerptCard title="Subscription-type taxonomy" excerpt={positioning2} />
+  </section>
+</Layout>

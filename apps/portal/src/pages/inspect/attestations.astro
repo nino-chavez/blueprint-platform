@@ -1,0 +1,27 @@
+<!--
+  REPLACE_FOR_PROJECT — this file contains example business content carried over
+  from the bc-subscriptions reference initiative. Rewrite or delete before sharing
+  with stakeholders. The portal-pattern-a-conformance-reviewer treats this banner
+  as a block — resolve before sharing with stakeholders.
+-->
+---
+import Layout from '@/layouts/Layout.astro';
+import { InspectNav } from '@/components/InspectNav';
+import { AttestationList } from '@/components/SubstrateDashboards';
+import { loadAttestations } from '@/lib/status';
+
+const atts = loadAttestations();
+---
+<Layout title="Attestations — Inspect" description="Manual sign-offs and partner-track commitments.">
+  <header class="mb-6 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-contrast-500">Inspect → Attestations</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      Attestations.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      Manual sign-offs and partner-track commitments. Grouped by gating impact: marketplace-blocking first, then GA-blocking, then soft-gating. Source: <code class="font-mono text-xs">docs/audits/derived/_attestations.json</code>.
+    </p>
+  </header>
+  <InspectNav currentPath={Astro.url.pathname} />
+  <AttestationList atts={atts} />
+</Layout>

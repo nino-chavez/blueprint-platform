@@ -1,0 +1,112 @@
+/**
+ * @blueprint/design-tokens — CSS variables
+ *
+ * Canonical surface for tokens. Every other consumer (Tailwind preset,
+ * Svelte components, vanilla HTML in apps/demos) reads through these.
+ *
+ * Color uses OKLCH for perceptually uniform lightness. Derived backgrounds
+ * and foregrounds use `oklch(from var(...) L C h / alpha)` so re-theming
+ * is a single source-color change.
+ *
+ * Namespace: --blue-* (blueprint-platform). Never collides with merchant
+ * storefront tokens or BC platform tokens.
+ */
+
+:root {
+  /* -------- Color (OKLCH triplets: lightness chroma hue) -------- */
+
+  /* Brand — teal/cyan; distinct from BC blue, signals "data/subscriptions" */
+  --blue-brand-lch:            0.55 0.13 215;
+  --blue-brand-background-lch: 0.97 0.03 215;
+  --blue-brand-foreground-lch: 0.28 0.06 215;
+
+  /* Semantic state */
+  --blue-success-lch:            0.72 0.17 152;
+  --blue-success-background-lch: 0.97 0.04 152;
+  --blue-success-foreground-lch: 0.32 0.09 152;
+
+  --blue-error-lch:            0.62 0.22 28;
+  --blue-error-background-lch: 0.96 0.04 28;
+  --blue-error-foreground-lch: 0.32 0.12 28;
+
+  --blue-warning-lch:            0.78 0.16 78;
+  --blue-warning-background-lch: 0.97 0.04 78;
+  --blue-warning-foreground-lch: 0.36 0.10 78;
+
+  --blue-info-lch:            0.62 0.13 245;
+  --blue-info-background-lch: 0.97 0.03 245;
+  --blue-info-foreground-lch: 0.32 0.08 245;
+
+  /* Neutral surfaces */
+  --blue-background-lch: 1 0 0;
+  --blue-foreground-lch: 0.16 0 0;
+
+  /* Neutral scale — 100 lightest, 500 darkest before foreground */
+  --blue-contrast-100-lch: 0.96 0 0;
+  --blue-contrast-200-lch: 0.88 0 0;
+  --blue-contrast-300-lch: 0.78 0 0;
+  --blue-contrast-400-lch: 0.62 0 0;
+  --blue-contrast-500-lch: 0.42 0 0;
+
+  /* -------- Typography -------- */
+  --blue-font-heading: 'Inter Display', 'Inter', system-ui, -apple-system, sans-serif;
+  --blue-font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --blue-font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* -------- Motion -------- */
+  --blue-duration-instant:    100ms;
+  --blue-duration-fast:       150ms;
+  --blue-duration-normal:     200ms;
+  --blue-duration-slow:       300ms;
+  --blue-duration-deliberate: 500ms;
+
+  --blue-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --blue-easing-decel:    cubic-bezier(0, 0, 0.2, 1);
+  --blue-easing-accel:    cubic-bezier(0.4, 0, 1, 1);
+  --blue-easing-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* -------- Focus rings -------- */
+  --blue-focus-ring-width:  2px;
+  --blue-focus-ring-offset: 2px;
+  --blue-focus-ring-color:  oklch(var(--blue-brand-lch));
+
+  /* -------- Elevation -------- */
+  --blue-shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.04);
+  --blue-shadow-md: 0 4px 8px -2px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.04);
+  --blue-shadow-lg: 0 12px 24px -8px oklch(0 0 0 / 0.10), 0 4px 8px -4px oklch(0 0 0 / 0.06);
+  --blue-shadow-xl: 0 24px 48px -12px oklch(0 0 0 / 0.14);
+}
+
+/*
+ * Theme = light-mode-first, explicit-opt-in only.
+ *
+ * Dark-mode auto-flip (@media prefers-color-scheme) was removed
+ * 2026-05-20 — the lightness-inversion approach didn't carry the
+ * editorial register and produced an undesigned dark surface.
+ *
+ * Surfaces that explicitly opt in to dark via data-theme="dark"
+ * still get the override block below. A deliberate dark-mode design
+ * pass (correct chroma curves, separate contrast ladder, motion
+ * adjustments) belongs in the Slice 7 brand-identity beat — not as
+ * an automatic side-effect of OS preference.
+ */
+
+[data-theme="light"] {
+  --blue-background-lch: 1 0 0;
+  --blue-foreground-lch: 0.16 0 0;
+  --blue-contrast-100-lch: 0.96 0 0;
+  --blue-contrast-200-lch: 0.88 0 0;
+  --blue-contrast-300-lch: 0.78 0 0;
+  --blue-contrast-400-lch: 0.62 0 0;
+  --blue-contrast-500-lch: 0.42 0 0;
+}
+
+[data-theme="dark"] {
+  --blue-background-lch: 0.16 0 0;
+  --blue-foreground-lch: 0.96 0 0;
+  --blue-contrast-100-lch: 0.22 0 0;
+  --blue-contrast-200-lch: 0.30 0 0;
+  --blue-contrast-300-lch: 0.40 0 0;
+  --blue-contrast-400-lch: 0.56 0 0;
+  --blue-contrast-500-lch: 0.74 0 0;
+}

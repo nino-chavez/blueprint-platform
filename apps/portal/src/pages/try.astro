@@ -1,0 +1,91 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { LiveIframe, StatusBadge } from '@blueprint/ui';
+import { TryNav } from '@/components/TryNav';
+
+const DEMO_ADMIN_URL = 'https://subs-api.bigcommerce-testing-7727.workers.dev/api/load?demo=1';
+
+// Iframe surfaces — admin needs a real BC install for the iframe to render,
+// so it's not iframed here anymore. The new model is: a primary CTA to the
+// demo (no-install merchant tour) plus the prototype iframe for design context.
+const SURFACES = [
+  {
+    id: 'prototype',
+    label: 'Prototype — design oracle + interactive specs',
+    src: 'https://subs-prototype.pages.dev',
+    note: 'Source of truth for design language and interaction patterns. Static screens, no real data — used to align on UX before building.',
+    status: 'ready' as const,
+  },
+];
+---
+<Layout title="Try" description="See it work — try the merchant admin against a real sandbox without installing the app.">
+  <header class="mb-6 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-success">Try</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      See the merchant experience.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      The demo path below mints a short-lived session against the project's BigCommerce sandbox and drops you into the merchant admin. Subscriptions, payment methods, and charge history are backed by <strong>real Stripe sandbox PaymentIntents</strong> — every charge row references a live <code class="font-mono text-[14px]">pi_*</code> you can verify in Stripe's dashboard. No install, no credentials.
+    </p>
+  </header>
+
+  <TryNav currentPath={Astro.url.pathname} />
+
+  {/* Primary CTA — the merchant demo */}
+  <section class="mb-10 rounded-xl border border-brand/30 bg-brand-background/30 p-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <p class="mb-1 font-mono text-[11px] uppercase tracking-wide text-brand-foreground">Live demo · real Stripe sandbox · no install</p>
+        <h2 class="mb-2 font-heading text-2xl font-semibold tracking-tight">Merchant admin</h2>
+        <p class="max-w-2xl text-sm leading-relaxed text-foreground">
+          Lands you inside the BigCommerce Subscriptions control panel as a fixture operator on sandbox store <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">cdfqf9k6zf</code>. The dashboard, subscriptions list, charges, and exception queue are backed by <strong>real Stripe sandbox PaymentIntents</strong> — each charge row's <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">processor_transaction_id</code> is a live <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">pi_*</code> you can look up in Stripe's dashboard. The past-due exception is a <strong>genuine <code class="rounded bg-contrast-100/60 px-1 font-mono text-[12px]">card_declined</code></strong> from a Stripe test card, not a fabricated row.
+        </p>
+        <ul class="mt-3 list-disc space-y-0.5 pl-5 text-xs text-contrast-500">
+          <li>3 plans tied to real Forge catalog products on channel <code class="font-mono">1854685</code>: Whey Protein, Multivitamin, Creatine</li>
+          <li>3 customers (Alice / Bob / Carol) backed by real Stripe customers (<code class="font-mono">cus_*</code>) on account <code class="font-mono">acct_1TZFLJ2QVRVDi4yM</code> (test mode)</li>
+          <li>5 subscriptions across active / paused / past-due / cancelled states</li>
+          <li>11 charges — 10 succeeded, 1 declined — all real Stripe PaymentIntents</li>
+          <li>Session lifetime 8h; reload to mint a fresh one if it expires</li>
+          <li>Nightly at 04:00 UTC: visitor-created rows (new subs, plans, charges) wiped; canonical subs reset to starting state</li>
+        </ul>
+      </div>
+      <a
+        href={DEMO_ADMIN_URL}
+        class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-5 py-3 font-medium text-brand-background shadow-sm transition-colors hover:bg-brand-foreground focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        Open the merchant admin →
+      </a>
+    </div>
+  </section>
+
+  {/* What's NOT live yet — honest disclosure */}
+  <section class="mb-10 rounded-lg border border-contrast-200 bg-background p-5 text-sm leading-relaxed">
+    <h2 class="mb-2 font-heading text-base font-semibold tracking-tight">What's not yet here</h2>
+    <ul class="list-disc space-y-1 pl-5 text-contrast-500">
+      <li><span class="font-medium text-foreground">Headless subscriber portal demo</span> — the subscriber-side experience (view + manage your subscriptions) currently requires a magic-link email round-trip. A no-credential demo route for that path is the next slice.</li>
+      <li><span class="font-medium text-foreground">Real BC storefront with subscription widgets</span> — the SvelteKit + Catalyst storefronts are wired against this sandbox but require authentication; a public demo store with subscription PDP widgets is a separate slice.</li>
+      <li><span class="font-medium text-foreground">App install from the BC marketplace</span> — not yet listed; the project is pre-marketplace.</li>
+    </ul>
+  </section>
+
+  {/* Prototype iframe — design oracle */}
+  <section class="grid gap-8">
+    {SURFACES.map((surface) => (
+      <article aria-labelledby={`surface-${surface.id}-heading`} class="flex flex-col gap-3">
+        <header class="flex items-end justify-between gap-3">
+          <div>
+            <h2
+              id={`surface-${surface.id}-heading`}
+              class="font-heading text-xl font-semibold tracking-tight"
+            >
+              {surface.label}
+            </h2>
+            <p class="mt-1 max-w-3xl text-sm text-contrast-500">{surface.note}</p>
+          </div>
+          <StatusBadge status={surface.status} />
+        </header>
+        <LiveIframe src={surface.src} title={surface.label} height="540px" />
+      </article>
+    ))}
+  </section>
+</Layout>

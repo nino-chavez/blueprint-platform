@@ -1,0 +1,39 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { HomeLanes } from '@/components/HomeLanes';
+import { HeroStats } from '@/components/HeroStats';
+import { loadState, loadBoard, loadAdrCount } from '@/lib/derived';
+
+const state = loadState();
+const board = loadBoard();
+const adrCount = loadAdrCount();
+---
+<Layout
+  title="blueprint-platform"
+  description="Blueprint productized — the methodology as a team-adoptable, portable platform. — strategy, demos, build docs, methodology, all in one place."
+>
+  <section class="mb-12 max-w-2xl">
+    <p class="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wide text-contrast-400">
+      <span class="inline-block h-1.5 w-1.5 rounded-full bg-brand"></span>
+      The blueprint-platform portal
+    </p>
+    <h1 class="mb-4 font-heading text-5xl font-semibold leading-tight tracking-tight text-foreground">
+      One front door, six paths in.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      Strategy, live demos, developer guides, merchant playbooks, methodology, roadmap — every surface of the
+      subscriptions platform on one shelf. Pick how you want to enter.
+    </p>
+  </section>
+
+  <HeroStats state={state} board={board} adrCount={adrCount} />
+
+  <HomeLanes client:load />
+
+  <section class="mt-16 rounded-lg border border-contrast-200 bg-contrast-100/30 p-6">
+    <h2 class="mb-2 font-heading text-xl font-semibold tracking-tight">Lane order shifts by audience</h2>
+    <p class="text-sm leading-relaxed text-contrast-500">
+      The three pills in the top-right reorder the cards above for whoever's looking: <strong class="font-medium text-foreground">Executive</strong> leads with strategy and trajectory, <strong class="font-medium text-foreground">Discovery</strong> (default) leads with proof and integration, <strong class="font-medium text-foreground">Internal</strong> leads with methodology. The choice persists across pages.
+    </p>
+  </section>
+</Layout>

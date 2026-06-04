@@ -1,0 +1,65 @@
+<!--
+  REPLACE_FOR_PROJECT — this file contains example business content carried over
+  from the bc-subscriptions reference initiative. Rewrite or delete before sharing
+  with stakeholders. The portal-pattern-a-conformance-reviewer treats this banner
+  as a block — resolve before sharing with stakeholders.
+-->
+---
+import Layout from '@/layouts/Layout.astro';
+import { InspectNav } from '@/components/InspectNav';
+import { CoverageView } from '@/components/CoverageView';
+import { DerivedRoadmap } from '@/components/DerivedRoadmap';
+import { loadState } from '@/lib/derived';
+
+const state = loadState();
+---
+<Layout title="Coverage audit — Inspect" description="Compliance audit: how much of what's specced is shipped.">
+  <header class="mb-6 max-w-3xl">
+    <p class="mb-2 font-mono text-xs uppercase tracking-wide text-contrast-500">Inspect → Coverage</p>
+    <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
+      Coverage audit.
+    </h1>
+    <p class="text-lg leading-relaxed text-contrast-500">
+      How much of what's specced is shipped — derived from BRD/PRD/ADR/scenario sources at <code class="font-mono text-xs">{state.commit}</code>. Retrospective only; for forward-looking work see <a class="text-brand hover:underline" href="/roadmap">Roadmap</a>.
+    </p>
+  </header>
+  <InspectNav currentPath={Astro.url.pathname} />
+
+  <div class="mb-8 grid gap-3 sm:grid-cols-4">
+    <div class="rounded-lg border border-contrast-200 bg-background p-4">
+      <p class="font-mono text-[10px] uppercase tracking-wide text-contrast-400">Total capabilities</p>
+      <p class="mt-1 font-heading text-2xl font-semibold leading-none tracking-tight">{state.total}</p>
+      <p class="mt-1 text-xs text-contrast-500">across {state.categories.length} categories</p>
+    </div>
+    <div class="rounded-lg border border-success/30 bg-success-background/40 p-4">
+      <p class="font-mono text-[10px] uppercase tracking-wide text-success-foreground">Compliant</p>
+      <p class="mt-1 font-heading text-2xl font-semibold leading-none tracking-tight text-success-foreground">{state.compliant}</p>
+      <p class="mt-1 text-xs text-success-foreground/80">{Math.round((state.compliant / state.total) * 100)}% of total</p>
+    </div>
+    <div class="rounded-lg border border-warning/30 bg-warning-background/40 p-4">
+      <p class="font-mono text-[10px] uppercase tracking-wide text-warning-foreground">Partial / manual-review</p>
+      <p class="mt-1 font-heading text-2xl font-semibold leading-none tracking-tight text-warning-foreground">{state.partial + state.manualReview}</p>
+      <p class="mt-1 text-xs text-warning-foreground/80">{state.partial} partial · {state.manualReview} manual</p>
+    </div>
+    <div class="rounded-lg border border-error/30 bg-error-background/40 p-4">
+      <p class="font-mono text-[10px] uppercase tracking-wide text-error-foreground">Non-compliant</p>
+      <p class="mt-1 font-heading text-2xl font-semibold leading-none tracking-tight text-error-foreground">{state.nonCompliant}</p>
+      <p class="mt-1 text-xs text-error-foreground/80">requires attention</p>
+    </div>
+  </div>
+
+  <CoverageView state={state} />
+
+  <details class="group mt-10 rounded-lg border border-contrast-200 bg-background">
+    <summary class="cursor-pointer select-none px-4 py-3 text-sm font-medium text-foreground hover:bg-contrast-100/50">
+      <span class="font-heading">Show all {state.total} capabilities</span>
+      <span class="ml-2 font-mono text-[10px] text-contrast-400 group-open:hidden">expand the tag-rail view</span>
+    </summary>
+    <div class="border-t border-contrast-200 p-4">
+      <p class="mb-3 text-xs text-contrast-500">
+        One swimlane per category. Top 8 per category shown, prioritized non-compliant → partial → manual-review → compliant. Hover any chip for description.
+      </p>
+      <DerivedRoadmap state={state} />
+    </div>
+  </details>
+</Layout>
