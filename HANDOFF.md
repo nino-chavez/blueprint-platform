@@ -12,18 +12,18 @@
 ## Blocking decision — RESOLVED
 **Scope ceiling: A (methodology-native only)** (operator, 2026-06-04). No hosted service. See charter § Resolved + `decisions/01-prescription.md § Design invariant`.
 
-## Next move — Stage 3 build (substrate first)
-Per the prescription's refined order, smallest-first, each source-touching step under a freeze waiver:
-1. **Step 0 — `BLUEPRINT_HOME` resolver** — one resolver replacing 29 hardcoded paths + the stale SessionStart hook default. Portability precondition; gates the CLI.
-2. **Step 1 — semver baseline** — Changesets wired + first `VERSION` + `CHANGELOG.md` (ADR-0007).
-3. **Step 2 — `@nino-chavez/blueprint-cli`** — root `package.json` + thin ESM dispatcher (reuse `stamp.mjs` parseArgs), subcommands stubbed.
-4. **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
+## Stage 3 build — IN PROGRESS (freeze waiver granted 2026-06-04)
 
-Source-touching steps (1/2/3/9) need a **methodology-freeze waiver** before landing in `tools/blueprint`. Confirm waiver authority before step 1.
+Building in a **worktree of `tools/blueprint`** at `~/Workspace/dev/wip/blueprint-substrate-build` on branch **`platform/substrate`** (base `main` 010945a). Source-touching work lands there; the operator merges to `main` as a wave when the substrate is reviewed.
+
+- [x] **Step 0 — `BLUEPRINT_HOME` resolver** (`ca273d2`). Hook resolves env → `blueprint.yml methodology_home` → local canonical → npm-installed `@nino-chavez/blueprint-cli` (candidate must hold METHODOLOGY.md); stale `wip/blueprint` default + `stamp.mjs` generated-path leaks + `big-blueprint` ref killed. Tested (syntax + 4 resolver cases + end-to-end JSON).
+- [ ] **Step 1 — semver baseline** — Changesets + first `VERSION` + `CHANGELOG.md` (ADR-0007). Verify `@blueprint` org claimability or ship `@nino-chavez/blueprint-cli`.
+- [ ] **Step 2 — `@nino-chavez/blueprint-cli`** — root `package.json` + thin ESM dispatcher (reuse `stamp.mjs` parseArgs); subcommands stubbed; JS resolver lib mirroring the hook's order.
+- [ ] **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
 
 ## Pending operator inputs (non-blocking)
 - npm scope: defaulted to `@nino-chavez/blueprint-cli`; redirect if registering the `@blueprint` org.
-- Freeze waiver for the source-touching build steps.
+- Merge `platform/substrate` → `tools/blueprint` main as a wave once the substrate is reviewed.
 
 ## Standing constraints
 - **Methodology freeze:** no edits to `tools/blueprint/template/` without an explicit operator waiver. Promote upstream via cross-repo PR / wave.
