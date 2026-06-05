@@ -1,7 +1,7 @@
 # HANDOFF — blueprint-platform
 
 **Date:** 2026-06-04
-**State:** Stages 0–2 + ADRs done. Stage-3 substrate: steps 0–1 done (BLUEPRINT_HOME, semver) on `platform/substrate`; step 2 (CLI) paused. **Portal harness: DONE** — `template/apps/portal` is now a genuinely generic, config-driven harness (Phase A/B/C), and blueprint-platform's portal renders its real deliverables (verified: npm install + astro check 0 errors + astro build 14 pages green, zero leak). Both methodology amendments RESOLVED. Next: merge the `platform/substrate` wave → `tools/blueprint` main (operator's call), then resume CLI (step 2).
+**State:** Stages 0–2 + ADRs done. **Portal harness DONE + DEPLOYED** → https://blueprint-platform.pages.dev (generic Pattern A harness wave 31, merged + pushed to `tools/blueprint` main `653720a`; both amendments resolved). **Stage-3 build:** steps 0–1 done (BLUEPRINT_HOME, semver — merged in wave 31); **step 2 done** (`@nino-chavez/blueprint-cli` dispatcher + resolver, `5ced121` on `platform/cli`, pending wave merge). Next: merge `platform/cli` as wave 32, then step 3 (first `.mjs` reviewer, ADR-0002/0006 — unblocks the gate + plugins).
 
 ## What landed
 - Project scaffolded at `~/Workspace/dev/wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
