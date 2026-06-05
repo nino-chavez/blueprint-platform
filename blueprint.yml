@@ -127,13 +127,13 @@ portal:
     hero_subhead: "A team-adoptable, portable Blueprint distribution — configurable cost, git-native access, and bidirectional non-breaking updates. Pick how you want to enter."
   excerpts:
     - card: discover
-      title: What it builds
+      title: What it is
       path: README.md
-      heading: What it builds
+      heading: blueprint-platform
     - card: discover
-      title: Gap scorecard
+      title: Extends, not supersedes
       path: decisions/00-charter.md
-      heading: "Gap scorecard — the operator's original six"
+      heading: "Relationship to blueprint-redesign — extends, does not supersede"
     - card: discover
       title: The expansion
       path: decisions/00-charter.md

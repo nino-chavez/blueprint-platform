@@ -95,17 +95,27 @@ export function loadExcerpt(
 
   if (foundIdx === -1) return null;
 
-  // Collect body lines until next heading at same-or-shallower depth
+  // Collect body lines until next heading at same-or-shallower depth. Skip
+  // markdown table rows/separators — raw pipes read as gibberish in a prose
+  // excerpt, and the full table is one click away via the source link.
   const bodyLines: string[] = [];
   for (let i = foundIdx + 1; i < lines.length; i++) {
     const line = lines[i]!;
     const nextHeading = /^(#{1,6})\s+/.exec(line);
     if (nextHeading && nextHeading[1]!.length <= foundDepth) break;
+    if (/^\s*\|/.test(line) || /^\s*\|?[\s:|-]{3,}\|?\s*$/.test(line)) continue;
     bodyLines.push(line);
   }
 
-  // Trim leading/trailing blank lines, collapse multiple blanks
+  // Trim, then strip inline markdown so the excerpt reads as clean prose
+  // (bold/code markers, leading bullets) rather than raw syntax.
   let body = bodyLines.join('\n').replace(/^\n+/, '').replace(/\n+$/, '');
+  body = body
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/\n{2,}/g, '\n\n')
+    .trim();
   const truncated = body.length > MAX_EXCERPT_CHARS;
   if (truncated) {
     body = body.slice(0, MAX_EXCERPT_CHARS).replace(/\s+\S*$/, '') + '…';
