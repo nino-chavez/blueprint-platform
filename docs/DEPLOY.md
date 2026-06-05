@@ -1,9 +1,15 @@
 # Deploy — durable portal hosting
 
+> **Status: live (2026-06-05).** Wired to the **abelino.chavez** Cloudflare
+> account (id `b6ffcf2…58d2`) — `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`
+> are set as repo secrets, and `blueprint-platform.pages.dev` serves that
+> account's `blueprint-platform` project. Pushes to the portal auto-deploy. The
+> setup steps below are the record of how it was wired (and how to rotate creds).
+
 The portal (`apps/portal`) deploys to Cloudflare Pages. The durable path is the
 GitHub Action `.github/workflows/deploy-portal.yml`: every push to `main` that
 touches the portal rebuilds and redeploys automatically — no manual `wrangler`
-from a local or hackathon session.
+from a local session.
 
 ## One-time setup (operator)
 
