@@ -1,0 +1,42 @@
+# Archaeology substrate Worker — template
+#
+# Replace blueprint below with your project's short name (matches
+# CF resource naming convention). Example: bc-subscriptions → "subs",
+# dms-self-serve → "dms", ask-bc → "askbc".
+#
+# scaffold-archaeology.sh handles this substitution automatically when run
+# from the consuming project's root.
+
+name = "blueprint-archaeology"
+main = "src/index.ts"
+compatibility_date = "2026-05-22"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 — events / refs / entities / ingest_bookmarks
+[[d1_databases]]
+binding = "DB"
+database_name = "blueprint-archaeology"
+database_id = "36ffc70e-a056-4adc-a9c1-9e41303f943b"  # populated by scaffold-archaeology.sh from `wrangler d1 create`
+
+# R2 — full session JSONLs, large diffs, large issue bodies
+[[r2_buckets]]
+binding = "BLOBS"
+bucket_name = "blueprint-archaeology-blobs"
+
+# Vectorize — chunk embeddings for /derive
+[[vectorize]]
+binding = "INDEX"
+index_name = "blueprint-archaeology-chunks"
+
+# Workers AI — embedding model for /derive (bge-base-en-v1.5, 768 dims)
+[ai]
+binding = "AI"
+
+# Ingest auth — POST /events requires this token in X-Archaeology-Token header.
+# Set via `wrangler secret put ARCHAEOLOGY_INGEST_TOKEN`. See hydration runbook.
+#
+# Synthesis (optional) — POST /derive returns retrieval-only unless ANTHROPIC_API_KEY
+# is set. When present, /derive synthesizes answers with inline [E:event_id] citations.
+# Override the default model via ANTHROPIC_MODEL (defaults to claude-sonnet-4-6).
+[vars]
+ALLOWED_PROJECTS = "blueprint-platform"  # comma-separated; extend as you federate

@@ -174,3 +174,20 @@ portal:
     attestations: null
     proposals: null
     dep_graph: null
+
+# ──────────────────────────────────────────────────────────────────
+# Archaeology substrate (LIVE) — event-sourced provenance over the
+# productization's history. "What did we know on date T, why X, who decided Z."
+# Tooling: tools/archaeology/. Pattern: tools/blueprint/docs/archaeology-substrate-pattern.md
+# ──────────────────────────────────────────────────────────────────
+archaeology:
+  enabled: true
+  project_slug: blueprint                 # CF resource prefix (blueprint-archaeology{,-blobs,-chunks})
+  worker: https://blueprint-archaeology.biq.workers.dev   # POST /events,/embed · GET /timeline,/derive,/health
+  cf_account: b6ffcf200d56bab5749e243f024658d2            # abelino.chavez account
+  federation: per_project
+  # Backfilled 2026-06-05: the 13 productization sessions (~/.claude/projects/
+  #   -Users-nino-Workspace-dev-tools-blueprint) → 949 events → 1165 Vectorize chunks.
+  #   The recon, canonical research, ADR deliberation, and design workflows live here,
+  #   queryable via /derive (retrieval grounded; set ANTHROPIC_API_KEY on the Worker for
+  #   full RAG synthesis). Ongoing capture: wire the SessionEnd hook (tools/archaeology).
