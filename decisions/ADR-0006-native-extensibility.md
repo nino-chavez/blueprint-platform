@@ -32,7 +32,7 @@ Org-authored reviewers are distributed and discovered git/npm-natively against t
 1. **The interface is ADR-0002's `review()`** — `({targetDir, blueprintYml, methodologyHome}) → {status, findings[], metadata}`. No SDK is invented; the signature **is** the SDK.
 2. **Discovery** — two sources, convention-based: (a) local `.claude/agents/blueprint/reviewers/*.mjs` (skip `_`-prefix), (b) npm-keyword — installed `blueprint-reviewer-*` packages declaring `keywords: ['blueprint-reviewer']`. Lift `state-derive`'s `walkCatalog` + dynamic-`import` + duck-type loop near-verbatim; only the predicate changes (default export is a function returning a valid `ReviewResult`).
 3. **Validation** — a load-time `validateReviewerModule` against a fixture (the deferred "SDK" reframed as a validator, not codegen).
-4. **Distribution** — npm package OR git dep; `files: ['reviewers/']`; peerDep on `@nino-chavez/blueprint-cli` for version pinning. (`specchain/package.json` is the literal template.)
+4. **Distribution** — npm package OR git dep; `files: ['reviewers/']`; peerDep on `@nino-chavez-labs/blueprint-cli` for version pinning. (`specchain/package.json` is the literal template.)
 5. **Catalog** — a committed `reviewers.yml` (Backstage's owned-typed-entity idea, minus the host).
 6. **Binding stays explicit** — discovery is automatic, but a reviewer declares its gate + variant explicitly; **canonical reviewers run before org reviewers**, and an org reviewer can only *tighten*, never relax, a canonical gate.
 7. **Precedence** — when the same reviewer exists both as a local `.mjs` and an installed package, **local overrides the package**, and the loader emits a WARN finding flagging the shadow (discovery automatic, binding visible).

@@ -21,7 +21,7 @@ Per the operator's canonical-pattern-first rule, each platform primitive was gro
 
 | Primitive | Vendor canonical | Decision (ceiling A) |
 |---|---|---|
-| CLI distribution | npm `bin` + `files` allowlist + `npx` | `@nino-chavez/blueprint-cli`, `bin: blueprint`, ESM dispatcher (no commander v1) |
+| CLI distribution | npm `bin` + `files` allowlist + `npx` | `@nino-chavez-labs/blueprint-cli`, `bin: blueprint`, ESM dispatcher (no commander v1) |
 | Versioning + CHANGELOG | Changesets (over semantic-release) | `.changeset/*.md` → VERSION+CHANGELOG+tag+publish in CI; conventional prefixes kept |
 | Deprecation | Node staged model (doc-only→warn→removed-on-MAJOR) | `BP-DEPR-NNN` register; SessionStart hook + reviewer emit warn |
 | Consumer registry | Terraform git-ref pin + Renovate committed-manifest | `consumers.yml` manifest; `blueprint fleet` computes per-version drift |
@@ -74,7 +74,7 @@ Each is a deliberate divergence from vendor canonical with its disqualifier name
 
 ## Resolved open questions
 
-- **npm name** → `@nino-chavez/blueprint-cli` (claimable now; `blueprint`/`blueprint-cli` unscoped taken; `@blueprint/cli` aspirational pending org registration). `bin` is `blueprint` regardless.
+- **npm name** → `@nino-chavez-labs/blueprint-cli` (claimable now; `blueprint`/`blueprint-cli` unscoped taken; `@blueprint/cli` aspirational pending org registration). `bin` is `blueprint` regardless.
 - **Changesets per-change markdown overhead** → accepted (the migration-note discipline is the point).
 - **Deprecation-clock vs methodology-freeze** → EOL slips to the next post-freeze MAJOR; removal never forces a waiver during a consumer-migration freeze (ADR-0005).
 - **Reviewer precedence (local `.mjs` vs installed package)** → local overrides the package, but the loader emits a WARN finding when a local reviewer shadows a packaged one (discovery automatic, binding visible) (ADR-0006).
@@ -84,7 +84,7 @@ Each is a deliberate divergence from vendor canonical with its disqualifier name
 
 0. `BLUEPRINT_HOME` resolver (gates the CLI — researchers underweighted; build first)
 1. Semver baseline (Changesets wired + first VERSION + CHANGELOG)
-2. `@nino-chavez/blueprint-cli` root package.json + thin dispatcher (subcommands stubbed)
+2. `@nino-chavez-labs/blueprint-cli` root package.json + thin dispatcher (subcommands stubbed)
 3. `.mjs` reviewer pairs + CI (unblocks the gate AND the plugin channel — sequence before 5/11)
 4. Cost-dial config (`cost:` block; dispatch-time frontmatter materialization)
 5. Telemetry + `blueprint cost` sweep (anchors emerge here, before defaults calibrate)

@@ -27,7 +27,7 @@ ADR-0001 accepted the dual-protocol distribution shape but left the toolchain un
 
 ## Decision
 
-1. **Package** — `@nino-chavez/blueprint-cli` (claimable now; `blueprint` and `blueprint-cli` unscoped are taken; `@blueprint/cli` is aspirational pending registering the `@blueprint` npm org). `bin: { blueprint: './bin/blueprint.mjs' }` (node shebang) — **the command is `blueprint` regardless of package name**. `files` allowlist = `bin/` + `template/` + `docs/` + `METHODOLOGY.md` + `CHANGELOG.md` (specchain's discipline — `research/`/`decisions/` never publish). `npx @nino-chavez/blueprint-cli init` is the zero-install entry.
+1. **Package** — `@nino-chavez-labs/blueprint-cli` (claimable now; `blueprint` and `blueprint-cli` unscoped are taken; `@blueprint/cli` is aspirational pending registering the `@blueprint` npm org). `bin: { blueprint: './bin/blueprint.mjs' }` (node shebang) — **the command is `blueprint` regardless of package name**. `files` allowlist = `bin/` + `template/` + `docs/` + `METHODOLOGY.md` + `CHANGELOG.md` (specchain's discipline — `research/`/`decisions/` never publish). `npx @nino-chavez-labs/blueprint-cli init` is the zero-install entry.
 2. **CLI framework** — hand-rolled ESM dispatcher reusing `stamp.mjs`'s `parseArgs`. No commander for v1 (thin surface: init / review / upgrade / fleet / cost / doctor). commander is the **named** escalation if the subcommand surface explodes (`forge-signal` is the internal precedent).
 3. **Versioning** — **Changesets**: contributors write intent as `.changeset/*.md`; `changeset version` → `VERSION` + `CHANGELOG.md` + tag; `changeset publish` → npm, in GitHub Actions. Conventional-commit prefixes are **kept** (they coexist; changesets become the changelog source of truth).
 4. **Deprecation** — Node's staged model mapped onto methodology primitives: **doc-only → warn → removed-on-MAJOR**, with a `BP-DEPR-NNN` code register in the CHANGELOG/docs. The SessionStart hook + a `.mjs` reviewer emit the warn when a deprecated key/stage/reviewer is used. `npm deprecate` is retained for the whole-CLI-version layer. Window: warn ≥1 minor before removal; removal only on MAJOR (and yields to the methodology-freeze cadence per ADR-0005).
@@ -48,5 +48,5 @@ ADR-0001 accepted the dual-protocol distribution shape but left the toolchain un
 ## Follow-ups
 
 - Build order steps 0–2 (BLUEPRINT_HOME → semver baseline → package.json + dispatcher). Land in `tools/blueprint` under a freeze waiver (root `package.json`/CI are source edits).
-- Verify/register the `@blueprint` npm org if the cleaner scope is wanted; otherwise ship `@nino-chavez/blueprint-cli`.
+- Verify/register the `@blueprint` npm org if the cleaner scope is wanted; otherwise ship `@nino-chavez-labs/blueprint-cli`.
 - **Supply-chain security** (charter [MED-HIGH], deferred here): npm provenance/signing + dependency policy + gitleaks baseline — required before cross-department org-reviewer install is encouraged (ADR-0006 negative consequence).

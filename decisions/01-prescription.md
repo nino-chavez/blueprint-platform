@@ -103,7 +103,7 @@ The 10 items above are now grounded by Stage 1 canonical research (`research/01-
 ```
 0  BLUEPRINT_HOME resolver            (portability precondition — gates the CLI)
 1  Semver baseline                    (Changesets + VERSION + CHANGELOG)        ADR-0007
-2  @nino-chavez/blueprint-cli         (package.json + thin ESM dispatcher)      ADR-0007
+2  @nino-chavez-labs/blueprint-cli         (package.json + thin ESM dispatcher)      ADR-0007
 3  .mjs reviewer pairs + CI           (ADR-0002 contract; unblocks 6 + 11)
 4  Cost-dial config                   (cost: block, frontmatter materialize)    ADR-0003
 5  Telemetry + `blueprint cost`       (anchors emerge here)                     ADR-0003
@@ -119,4 +119,4 @@ The 10 items above are now grounded by Stage 1 canonical research (`research/01-
 
 Steps 0–3 are the unbuilt v1 substrate — they must exist before 4–13 validate against anything real (charter risk #2). Steps 9 + 1 + 2 + 3 touch `tools/blueprint` source (root `package.json`, CI, CODEOWNERS, `.mjs` reviewers) — each lands under a **methodology-freeze waiver**, batched. Stage 4 Fact-Check verifies the bidirectional channel against a **real second consumer**, not by assertion (the wave-2 lesson).
 
-**Open question resolved:** npm name = `@nino-chavez/blueprint-cli` (`blueprint`/`blueprint-cli` unscoped taken; `@blueprint/cli` aspirational pending org registration; `bin` is `blueprint` regardless).
+**Open question resolved:** npm name = `@nino-chavez-labs/blueprint-cli` (`blueprint`/`blueprint-cli` unscoped taken; `@blueprint/cli` aspirational pending org registration; `bin` is `blueprint` regardless).

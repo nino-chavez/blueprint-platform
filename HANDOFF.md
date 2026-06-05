@@ -1,7 +1,7 @@
 # HANDOFF — blueprint-platform
 
 **Date:** 2026-06-04
-**State:** Stages 0–2 + ADRs done. **Portal harness DONE + DEPLOYED** → https://blueprint-platform.pages.dev (generic Pattern A harness wave 31, merged + pushed to `tools/blueprint` main `653720a`; both amendments resolved). **Stage-3 build:** steps 0–1 done (BLUEPRINT_HOME, semver — merged in wave 31); **step 2 done** (`@nino-chavez/blueprint-cli` dispatcher + resolver, `5ced121` on `platform/cli`, pending wave merge). Next: merge `platform/cli` as wave 32, then step 3 (first `.mjs` reviewer, ADR-0002/0006 — unblocks the gate + plugins).
+**State:** Stages 0–2 + ADRs done. **Portal harness DONE + DEPLOYED** → https://blueprint-platform.pages.dev (generic Pattern A harness wave 31, merged + pushed to `tools/blueprint` main `653720a`; both amendments resolved). **Stage-3 build:** steps 0–1 done (BLUEPRINT_HOME, semver — merged in wave 31); **step 2 done** (`@nino-chavez-labs/blueprint-cli` dispatcher + resolver, `5ced121` on `platform/cli`, pending wave merge). Next: merge `platform/cli` as wave 32, then step 3 (first `.mjs` reviewer, ADR-0002/0006 — unblocks the gate + plugins).
 
 ## What landed
 - Project scaffolded at `wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
@@ -16,8 +16,8 @@
 
 Building in a **worktree of `tools/blueprint`** at `wip/blueprint-substrate-build` on branch **`platform/substrate`** (base `main` 010945a). Source-touching work lands there; the operator merges to `main` as a wave when the substrate is reviewed.
 
-- [x] **Step 0 — `BLUEPRINT_HOME` resolver** (`ca273d2`). Hook resolves env → `blueprint.yml methodology_home` → local canonical → npm-installed `@nino-chavez/blueprint-cli` (candidate must hold METHODOLOGY.md); stale `wip/blueprint` default + `stamp.mjs` generated-path leaks + `big-blueprint` ref killed. Tested (syntax + 4 resolver cases + end-to-end JSON).
-- [x] **Step 1 — semver baseline** (`3a22923`). `package.json` `@nino-chavez/blueprint-cli` 0.1.0 (single version source, no VERSION file); `.changeset/` config + README (migration-note discipline); `CHANGELOG.md` 0.1.0 baseline; `.github/workflows/release.yml` (dormant until `NPM_TOKEN`); hook version-banner (flags consumer pin drift → `blueprint upgrade`). Tested. `@blueprint/cli` still pending org claim — shipped scoped.
+- [x] **Step 0 — `BLUEPRINT_HOME` resolver** (`ca273d2`). Hook resolves env → `blueprint.yml methodology_home` → local canonical → npm-installed `@nino-chavez-labs/blueprint-cli` (candidate must hold METHODOLOGY.md); stale `wip/blueprint` default + `stamp.mjs` generated-path leaks + `big-blueprint` ref killed. Tested (syntax + 4 resolver cases + end-to-end JSON).
+- [x] **Step 1 — semver baseline** (`3a22923`). `package.json` `@nino-chavez-labs/blueprint-cli` 0.1.0 (single version source, no VERSION file); `.changeset/` config + README (migration-note discipline); `CHANGELOG.md` 0.1.0 baseline; `.github/workflows/release.yml` (dormant until `NPM_TOKEN`); hook version-banner (flags consumer pin drift → `blueprint upgrade`). Tested. `@blueprint/cli` still pending org claim — shipped scoped.
 - [ ] **Step 2 — CLI dispatcher** — `bin/blueprint.mjs` thin ESM dispatcher (reuse `stamp.mjs` parseArgs) + a JS resolver lib (`template/tools/lib/blueprint-home.mjs`) mirroring the hook's resolution order; subcommands stubbed (init/review/upgrade/fleet/cost/doctor); add `bin` to package.json.
 - [ ] **Step 3 — first `.mjs` reviewer** — prove the ADR-0002 contract runs outside Claude Code.
 
@@ -29,7 +29,7 @@ The Blueprint portal SHELL is the canonical harness/index to all deliverables (n
 - [x] **Generic harness refactor + populate** (blueprint-platform `d27adc5`; template fixes on `platform/substrate`: `b9ce8af` Phase A, `e264f4e` Phase B, `cc8e340` banner). The Pattern A portal template was made a genuinely generic, config-driven harness (North Star / campsite): `portal-config.ts` contract (a `blueprint.yml portal:` block), all loaders degrade-to-empty, `@blueprint/gate-derive` vendored, workspace-root scaffold, `repo-root` keys on `blueprint.yml`, ~22 pages de-narrated. blueprint-platform re-stamped from it + its `portal:` block authored: `discover` ← charter excerpts, `inspect` ← doc cards + live ADR catalog (0003–0007), `roadmap` ← the 14-step `build-order.json` (`apps/portal/src/data/`), hero ← productization thesis; substrate sections hidden (ceiling A, no Hive). **Verified: npm install + astro check (0 errors) + astro build (14 pages) green; renders all real deliverables; zero leak.** Both methodology amendments RESOLVED. **To view:** `cd apps/portal && npm run dev`. Optional remaining: a CLI `scenarios.json` for `/try`, and Cloudflare Pages deploy.
 
 ## Pending operator inputs (non-blocking)
-- npm scope: defaulted to `@nino-chavez/blueprint-cli`; redirect if registering the `@blueprint` org.
+- npm scope: defaulted to `@nino-chavez-labs/blueprint-cli`; redirect if registering the `@blueprint` org.
 - Merge `platform/substrate` → `tools/blueprint` main as a wave once the substrate is reviewed.
 
 ## Standing constraints

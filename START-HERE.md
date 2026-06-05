@@ -61,12 +61,12 @@ org-authored reviewers without forking.
 Honest state today:
 
 - **Explore now** — the portal + this repo are live and public. Nothing to install.
-- **Run it** — the CLI (`@nino-chavez/blueprint-cli`) is built but **not yet on
+- **Run it** — the CLI (`@nino-chavez-labs/blueprint-cli`) is built but **not yet on
   npm**, and deploys currently target a hackathon Cloudflare account. Once it's
   published, the on-ramp is:
 
   ```bash
-  npx @nino-chavez/blueprint-cli init --pattern=A --target=my-initiative
+  npx @nino-chavez-labs/blueprint-cli init --pattern=A --target=my-initiative
   cd my-initiative
   # edit blueprint.yml (project, audience, research scope, cost dial)
   # then run the pipeline with Claude Code — the stamped CLAUDE.md drives each stage
