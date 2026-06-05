@@ -1,7 +1,7 @@
 # HANDOFF — blueprint-platform
 
 **Date:** 2026-06-04
-**State:** Stages 0–2 done + ADRs drafted. Project committed (`2c31137`). Scope ceiling A resolved. Stage 1 canonical research complete (`research/01`). ADR-0003..0007 drafted (status: proposed, grounded). Prescription carries the research-refined 14-step build order. Next: Stage 3 build.
+**State:** Stages 0–2 + ADRs done. Stage-3 substrate: steps 0–1 done (BLUEPRINT_HOME, semver) on `platform/substrate`; step 2 (CLI) paused. **Portal harness: DONE** — `template/apps/portal` is now a genuinely generic, config-driven harness (Phase A/B/C), and blueprint-platform's portal renders its real deliverables (verified: npm install + astro check 0 errors + astro build 14 pages green, zero leak). Both methodology amendments RESOLVED. Next: merge the `platform/substrate` wave → `tools/blueprint` main (operator's call), then resume CLI (step 2).
 
 ## What landed
 - Project scaffolded at `~/Workspace/dev/wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
@@ -26,7 +26,7 @@ Building in a **worktree of `tools/blueprint`** at `~/Workspace/dev/wip/blueprin
 The Blueprint portal SHELL is the canonical harness/index to all deliverables (not a bespoke analysis portal — see memory `blueprint-portal-is-the-harness`). Flipped `portal_pattern` **B → A** (platform-portal fits a platform; bc-subscriptions is the Pattern A reference).
 
 - [x] **Shell stamped** (`e38ddb7`) — `apps/portal` (Astro IA contract discover/try/build/operate/inspect/roadmap) + `packages/{ui,design-tokens}` via `stamp.mjs --pattern=A`. `blueprint.yml` preserved; evidence untouched. Amendment filed (stamper mechanical-check false-positives on evidence docs citing the example project).
-- [ ] **Populate IA routes with this initiative's deliverables** — `discover` ← charter (what the platform is); `inspect` ← gap scorecard + ADR-0003..0007 + research evidence; `roadmap` ← the 14-step build order + track progress; `try` ← `npx @nino-chavez/blueprint-cli init`; `build`/`operate` ← usage. Replace the bc-subs placeholder content in `apps/portal/src/lib/{status,scenarios}.ts` + pages. Then `cd apps/portal && npm install && npm run dev` to verify; deploy to Cloudflare Pages.
+- [x] **Generic harness refactor + populate** (blueprint-platform `d27adc5`; template fixes on `platform/substrate`: `b9ce8af` Phase A, `e264f4e` Phase B, `cc8e340` banner). The Pattern A portal template was made a genuinely generic, config-driven harness (North Star / campsite): `portal-config.ts` contract (a `blueprint.yml portal:` block), all loaders degrade-to-empty, `@blueprint/gate-derive` vendored, workspace-root scaffold, `repo-root` keys on `blueprint.yml`, ~22 pages de-narrated. blueprint-platform re-stamped from it + its `portal:` block authored: `discover` ← charter excerpts, `inspect` ← doc cards + live ADR catalog (0003–0007), `roadmap` ← the 14-step `build-order.json` (`apps/portal/src/data/`), hero ← productization thesis; substrate sections hidden (ceiling A, no Hive). **Verified: npm install + astro check (0 errors) + astro build (14 pages) green; renders all real deliverables; zero leak.** Both methodology amendments RESOLVED. **To view:** `cd apps/portal && npm run dev`. Optional remaining: a CLI `scenarios.json` for `/try`, and Cloudflare Pages deploy.
 
 ## Pending operator inputs (non-blocking)
 - npm scope: defaulted to `@nino-chavez/blueprint-cli`; redirect if registering the `@blueprint` org.
