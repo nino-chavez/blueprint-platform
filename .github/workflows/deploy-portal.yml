@@ -1,0 +1,74 @@
+name: Deploy portal
+
+# Durable deploy for the Blueprint platform portal → Cloudflare Pages.
+# Replaces the manual `wrangler pages deploy` from a local/hackathon session:
+# every push to main (touching the portal) rebuilds + redeploys automatically,
+# on whatever Cloudflare account the CLOUDFLARE_API_TOKEN belongs to.
+#
+# DORMANT until secrets are set — it runs green and SKIPS the deploy steps (with
+# a notice) when the Cloudflare credentials are absent, so adding this file does
+# not red-X the repo. To enable, add two repo secrets (Settings → Secrets and
+# variables → Actions) on a DURABLE Cloudflare account (not the hackathon one):
+#   CLOUDFLARE_API_TOKEN   — a token with Account · Cloudflare Pages : Edit
+#   CLOUDFLARE_ACCOUNT_ID  — the account ID that owns (or will own) the project
+# The first run creates the `blueprint-platform` Pages project on that account.
+#
+# Alternative (even less to maintain): connect this repo in the Cloudflare Pages
+# dashboard with build command `npm run build -w apps/portal`, output directory
+# `apps/portal/dist`, root `/` — CF then builds natively on every push and this
+# workflow is unnecessary. Pick one, not both.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/portal/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-portal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-portal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on Cloudflare credentials
+        id: gate
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Cloudflare secrets not set — deploy is dormant. Add CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID (repo Settings → Secrets) on a durable account to enable."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - if: steps.gate.outputs.ready == 'true'
+        name: Install (workspace root — resolves @blueprint/* packages)
+        run: npm ci --no-audit --no-fund
+
+      - if: steps.gate.outputs.ready == 'true'
+        name: Build the portal
+        run: npm run build -w apps/portal
+
+      - if: steps.gate.outputs.ready == 'true'
+        name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/portal
+          command: pages deploy dist --project-name=blueprint-platform --branch=main
