@@ -3,7 +3,7 @@ stage: 1
 status: evidence
 date: 2026-06-04
 method: 6-agent recon workflow (5 parallel domain readers + 1 synthesis)
-full_transcript: ~/.claude/projects/-Users-nino-Workspace-dev-tools-blueprint/8269db3c-a731-4915-9281-c2c4551810a7/subagents/workflows/wf_d7cf9906-489
+full_transcript: (local Claude Code session transcript — not published)
 ---
 
 # Recon synthesis — current Blueprint vs the productization requirements

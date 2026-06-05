@@ -11,8 +11,8 @@ references:
   - ../research/01-canonical-research.md
   - "vendor: https://platform.claude.com/docs/en/build-with-claude/effort"
   - "vendor: https://code.claude.com/docs/en/sub-agents"
-  - "internal: ~/Workspace/dev/tools/blueprint/docs/tiered-orchestration-pattern.md"
-  - "internal: ~/Workspace/dev/tools/specchain/specchain/docs/execution-profiles.md"
+  - "internal: tools/blueprint/docs/tiered-orchestration-pattern.md"
+  - "internal: tools/specchain/specchain/docs/execution-profiles.md"
 ---
 
 # ADR-0003 — Configurable cost/effort dial

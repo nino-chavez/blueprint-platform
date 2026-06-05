@@ -1,8 +1,8 @@
 # blueprint-platform
 
-**Repo role: I am a Blueprint consumer initiative — the productization pass.** I apply the Blueprint methodology to itself to turn it into a team-adoptable, portable platform. The methodology SOURCE lives at `~/Workspace/dev/tools/blueprint/` (that repo is canonical; it must stay the source — no `blueprint.yml`/`research/`/`decisions/` there). This file is a map, not a manual.
+**Repo role: I am a Blueprint consumer initiative — the productization pass.** I apply the Blueprint methodology to itself to turn it into a team-adoptable, portable platform. The methodology SOURCE lives at `tools/blueprint/` (that repo is canonical; it must stay the source — no `blueprint.yml`/`research/`/`decisions/` there). This file is a map, not a manual.
 
-This initiative **extends** `~/Workspace/dev/wip/blueprint-redesign/`, which ratified the v1-solo architecture (ADR-0001 dual-protocol distribution, ADR-0002 reviewers-as-executable-plugins) and explicitly deferred the four productization requirements this initiative now builds. Those ADRs are **inherited verbatim — do not re-decide them.** See `decisions/00-charter.md`.
+This initiative **extends** `wip/blueprint-redesign/`, which ratified the v1-solo architecture (ADR-0001 dual-protocol distribution, ADR-0002 reviewers-as-executable-plugins) and explicitly deferred the four productization requirements this initiative now builds. Those ADRs are **inherited verbatim — do not re-decide them.** See `decisions/00-charter.md`.
 
 ## Repo shape — standalone repo (why not the orphan-worktree pattern)
 
@@ -22,19 +22,19 @@ Reversible. If the operator prefers the orphan-worktree family pattern, re-init 
 
 ## Canonical context (load these first — from the SOURCE repo, not stale `wip/blueprint`)
 
-The methodology was renamed/moved to `tools/blueprint`; blueprint-redesign's docs and the SessionStart hook still point at the **stale** `~/Workspace/dev/wip/blueprint/` path. Use these:
+The methodology was renamed/moved to `tools/blueprint`; blueprint-redesign's docs and the SessionStart hook still point at the **stale** `wip/blueprint/` path. Use these:
 
-1. `~/Workspace/dev/tools/blueprint/METHODOLOGY.md`
-2. `~/Workspace/dev/tools/blueprint/docs/variant-selection.md`
-3. `~/Workspace/dev/tools/blueprint/docs/portal-and-tier-ladder.md`
+1. `tools/blueprint/METHODOLOGY.md`
+2. `tools/blueprint/docs/variant-selection.md`
+3. `tools/blueprint/docs/portal-and-tier-ladder.md`
 
 ## Companion: ai-hive — integrate, do NOT absorb
 
-`~/Workspace/dev/wip/ai-hive/` is the multi-operator coordination kit (Worker + D1 + bearer-token auth + origin-allowlist + ~20 MCP coordination tools). The prescription's standing decision is **"companion stays separate / Never absorb."** Blueprint owns methodology; ai-hive owns identity, coordination, persistence. The platform's access-control and multi-operator design build ON ai-hive's substrate — they do not rebuild auth/persistence inside Blueprint (that is the named SaaS-scope-creep failure mode). See `decisions/00-charter.md § Fork 1`.
+`wip/ai-hive/` is the multi-operator coordination kit (Worker + D1 + bearer-token auth + origin-allowlist + ~20 MCP coordination tools). The prescription's standing decision is **"companion stays separate / Never absorb."** Blueprint owns methodology; ai-hive owns identity, coordination, persistence. The platform's access-control and multi-operator design build ON ai-hive's substrate — they do not rebuild auth/persistence inside Blueprint (that is the named SaaS-scope-creep failure mode). See `decisions/00-charter.md § Fork 1`.
 
 ## Methodology freeze + promotion path (load-bearing)
 
-While this initiative is in flight, **no edits to `~/Workspace/dev/tools/blueprint/template/` without an explicit operator waiver.** The methodology repo and consumer migrations advance sequentially. When platform work needs to land in the source (promote an ADR, ship the `.mjs` reviewers, add semver), pause, get the waiver, land it as a cross-repo PR / wave on `tools/blueprint`, then resume. Reason: the 2026-05-25 four-way root-doc drift came from exactly this parallel evolution. See `tools/blueprint/template/CLAUDE.md § Methodology freeze during consumer migration` and `tools/blueprint/CLAUDE.md`.
+While this initiative is in flight, **no edits to `tools/blueprint/template/` without an explicit operator waiver.** The methodology repo and consumer migrations advance sequentially. When platform work needs to land in the source (promote an ADR, ship the `.mjs` reviewers, add semver), pause, get the waiver, land it as a cross-repo PR / wave on `tools/blueprint`, then resume. Reason: the 2026-05-25 four-way root-doc drift came from exactly this parallel evolution. See `tools/blueprint/template/CLAUDE.md § Methodology freeze during consumer migration` and `tools/blueprint/CLAUDE.md`.
 
 ## Stages (brownfield pipeline)
 

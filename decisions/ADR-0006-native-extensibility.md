@@ -14,7 +14,7 @@ references:
   - "vendor: https://eslint.org/docs/latest/extend/plugins"
   - "vendor: https://vite.dev/guide/api-plugin"
   - "vendor: https://backstage.io/docs/features/software-catalog/system-model"
-  - "internal: ~/Workspace/dev/tools/blueprint/template/tools/state-derive/index.ts (walkCatalog:48)"
+  - "internal: tools/blueprint/template/tools/state-derive/index.ts (walkCatalog:48)"
 ---
 
 # ADR-0006 — Native extensibility (org-authored reviewers/stages)

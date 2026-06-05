@@ -13,7 +13,7 @@ references:
   - "vendor: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners"
   - "vendor: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets"
   - "vendor: https://rust-lang.github.io/rfcs/0002-rfc-process.html"
-  - "internal: ~/Workspace/dev/tools/blueprint/docs/amendment-classification-pattern.md"
+  - "internal: tools/blueprint/docs/amendment-classification-pattern.md"
 ---
 
 # ADR-0004 — Native access control + governance

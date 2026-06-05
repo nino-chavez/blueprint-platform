@@ -2,8 +2,8 @@
 
 Blueprint applied to itself — the **productization pass.** Turns the Blueprint methodology from a single-operator workflow into a team-adoptable, portable platform.
 
-**Methodology source** (canonical, do not edit without waiver): `~/Workspace/dev/tools/blueprint/`
-**Extends:** `~/Workspace/dev/wip/blueprint-redesign/` (v1-solo foundation: ADR-0001/0002, inherited verbatim)
+**Methodology source** (canonical, do not edit without waiver): `tools/blueprint/`
+**Extends:** `wip/blueprint-redesign/` (v1-solo foundation: ADR-0001/0002, inherited verbatim)
 
 ## What it builds
 

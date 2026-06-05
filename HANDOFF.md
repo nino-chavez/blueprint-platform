@@ -4,7 +4,7 @@
 **State:** Stages 0–2 + ADRs done. **Portal harness DONE + DEPLOYED** → https://blueprint-platform.pages.dev (generic Pattern A harness wave 31, merged + pushed to `tools/blueprint` main `653720a`; both amendments resolved). **Stage-3 build:** steps 0–1 done (BLUEPRINT_HOME, semver — merged in wave 31); **step 2 done** (`@nino-chavez/blueprint-cli` dispatcher + resolver, `5ced121` on `platform/cli`, pending wave merge). Next: merge `platform/cli` as wave 32, then step 3 (first `.mjs` reviewer, ADR-0002/0006 — unblocks the gate + plugins).
 
 ## What landed
-- Project scaffolded at `~/Workspace/dev/wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
+- Project scaffolded at `wip/blueprint-platform/` (standalone repo — rationale in `CLAUDE.md`).
 - `blueprint.yml` — brownfield / Tier 2 / Pattern B; pinned to methodology HEAD `010945a`; 6 productization tracks declared.
 - `decisions/00-charter.md` — relationship to blueprint-redesign (extends), gap scorecard (6), the expanded requirement set (architect-surfaced additions across tracks A–F), proposed stage sequence, defaults taken, risks, reusable-foundation table.
 - `research/00-recon-synthesis.md` — 6-agent recon evidence base (full transcript path in frontmatter).
@@ -14,7 +14,7 @@
 
 ## Stage 3 build — IN PROGRESS (freeze waiver granted 2026-06-04)
 
-Building in a **worktree of `tools/blueprint`** at `~/Workspace/dev/wip/blueprint-substrate-build` on branch **`platform/substrate`** (base `main` 010945a). Source-touching work lands there; the operator merges to `main` as a wave when the substrate is reviewed.
+Building in a **worktree of `tools/blueprint`** at `wip/blueprint-substrate-build` on branch **`platform/substrate`** (base `main` 010945a). Source-touching work lands there; the operator merges to `main` as a wave when the substrate is reviewed.
 
 - [x] **Step 0 — `BLUEPRINT_HOME` resolver** (`ca273d2`). Hook resolves env → `blueprint.yml methodology_home` → local canonical → npm-installed `@nino-chavez/blueprint-cli` (candidate must hold METHODOLOGY.md); stale `wip/blueprint` default + `stamp.mjs` generated-path leaks + `big-blueprint` ref killed. Tested (syntax + 4 resolver cases + end-to-end JSON).
 - [x] **Step 1 — semver baseline** (`3a22923`). `package.json` `@nino-chavez/blueprint-cli` 0.1.0 (single version source, no VERSION file); `.changeset/` config + README (migration-note discipline); `CHANGELOG.md` 0.1.0 baseline; `.github/workflows/release.yml` (dormant until `NPM_TOKEN`); hook version-banner (flags consumer pin drift → `blueprint upgrade`). Tested. `@blueprint/cli` still pending org claim — shipped scoped.

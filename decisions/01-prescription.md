@@ -38,7 +38,7 @@ Built smallest-first; substrate before design slices (charter risk #2: don't ver
 - Deprecation lifecycle: `deprecated → removed` with a documented window; migration note per breaking bump.
 
 ### 2. `BLUEPRINT_HOME` resolver  *(portability precondition)*
-- One resolver replaces the 29 hardcoded `~/Workspace/dev` paths + the **stale** SessionStart hook default (points at pre-rename `wip/blueprint`).
+- One resolver replaces the 29 hardcoded `the dev workspace` paths + the **stale** SessionStart hook default (points at pre-rename `wip/blueprint`).
 - Resolution order: `$BLUEPRINT_HOME` → `blueprint.yml` field → npm-installed package path → error with remediation. No path assumes one operator's filesystem.
 
 ### 3. `@blueprint/cli` (thin)  *(the distribution surface ADR-0001 specified)*

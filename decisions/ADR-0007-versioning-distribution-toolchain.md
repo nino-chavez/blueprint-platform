@@ -14,7 +14,7 @@ references:
   - "vendor: https://docs.npmjs.com/cli/v10/configuring-npm/package-json"
   - "vendor: https://github.com/changesets/changesets"
   - "vendor: https://nodejs.org/api/deprecations.html"
-  - "internal: ~/Workspace/dev/tools/specchain/package.json (create-specchain)"
+  - "internal: tools/specchain/package.json (create-specchain)"
 ---
 
 # ADR-0007 — Versioning + distribution toolchain (operationalizes ADR-0001)

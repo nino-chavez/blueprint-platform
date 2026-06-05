@@ -11,8 +11,8 @@ references:
   - ../research/01-canonical-research.md
   - "vendor: https://docs.renovatebot.com/configuration-options/"
   - "vendor: https://github.com/changesets/changesets"
-  - "internal: ~/Workspace/dev/tools/blueprint/template/tools/blueprint-init/stamp.mjs (classifyDivergenceCause:394)"
-  - "internal: ~/Workspace/dev/tools/specchain/setup.sh (--upgrade)"
+  - "internal: tools/blueprint/template/tools/blueprint-init/stamp.mjs (classifyDivergenceCause:394)"
+  - "internal: tools/specchain/setup.sh (--upgrade)"
 ---
 
 # ADR-0005 — Bidirectional non-breaking update protocol

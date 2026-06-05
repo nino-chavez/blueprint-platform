@@ -1,8 +1,8 @@
 # Blueprint Configuration — wip/blueprint-platform
 # Created 2026-06-04. Blueprint applied to itself, productization pass.
 #
-# Current-state product:  the Blueprint methodology source at ~/Workspace/dev/tools/blueprint/
-#                         (+ its v1-solo self-application at ~/Workspace/dev/wip/blueprint-redesign/)
+# Current-state product:  the Blueprint methodology source at tools/blueprint/
+#                         (+ its v1-solo self-application at wip/blueprint-redesign/)
 # Proposed-state product: Blueprint as a team-adoptable, portable platform —
 #                         configurable cost, org access control, bidirectional
 #                         non-breaking update distribution, onboarding ramp.
@@ -26,7 +26,7 @@ project:
 
 # ──────────────────────────────────────────────────────────────────
 # Pilot profile (REQUIRED — Stage 0 → Stage 1 gate)
-# Reference: ~/Workspace/dev/tools/blueprint/template/docs/methodology/pilot-profile-template.md
+# Reference: tools/blueprint/template/docs/methodology/pilot-profile-template.md
 # ──────────────────────────────────────────────────────────────────
 pilot_profile:
   slug: "department-team-adopter"
@@ -48,14 +48,14 @@ pilot_profile:
 # Pipeline shape — brownfield. Blueprint exists, works, ships to 6 named
 # consumers, and has a deployed reference portal. We evolve it, preserving what
 # works (ADR-0001/0002, the stamper, the reviewer specs, the portal chrome).
-# See: ~/Workspace/dev/tools/blueprint/docs/variant-selection.md
+# See: tools/blueprint/docs/variant-selection.md
 variant: brownfield
 
 # Deliverable sophistication — Tier 2. Unlike blueprint-redesign (Tier 1, portal
 # only), this initiative ships real new product surfaces alongside the portal:
 # @blueprint/cli, executable .mjs reviewers, a versioned update channel, and a
 # thin coordination control plane (pending the scope-ceiling decision).
-# See: ~/Workspace/dev/tools/blueprint/docs/portal-and-tier-ladder.md
+# See: tools/blueprint/docs/portal-and-tier-ladder.md
 tier: 2
 
 # Portal pattern — A (platform-portal-as-harness). Corrected from B 2026-06-04:
@@ -79,7 +79,7 @@ execution:
 # NOTE: no semver exists in the methodology repo yet (tags are dogfood-v1/v2/v3
 # only, no CHANGELOG). Establishing semver IS the first deliverable of the
 # distribution track. Until then we pin to the source HEAD sha.
-methodology_version: "010945a"   # ~/Workspace/dev/tools/blueprint @ 2026-06-04
+methodology_version: "010945a"   # tools/blueprint @ 2026-06-04
 
 # Companion — ai-hive. Integrate, do NOT absorb (prescription: "companion stays
 # separate / Never"). Blueprint owns methodology; ai-hive owns identity,

@@ -4,7 +4,7 @@ status: evidence
 date: 2026-06-04
 method: 6-agent canonical-pattern research (5 track researchers + synthesis)
 ceiling: "A — methodology-native only"
-full_transcript: ~/.claude/projects/-Users-nino-Workspace-dev-tools-blueprint/8269db3c-a731-4915-9281-c2c4551810a7/subagents/workflows/wf_1ee0e1f6-fc7
+full_transcript: (local Claude Code session transcript — not published)
 feeds:
   - ADR-0003-cost-effort-dial.md
   - ADR-0004-native-access-governance.md
@@ -15,7 +15,7 @@ feeds:
 
 # Stage 1 canonical research — grounded design basis (ceiling A)
 
-Per the operator's canonical-pattern-first rule, each platform primitive was grounded against (1) the **vendor canonical** doc and (2) an **internal reference impl** under `~/Workspace/dev`. This is the decision basis for ADR-0003..0007. Full per-primitive detail in the workflow transcript (frontmatter).
+Per the operator's canonical-pattern-first rule, each platform primitive was grounded against (1) the **vendor canonical** doc and (2) an **internal reference impl** under `the dev workspace`. This is the decision basis for ADR-0003..0007. Full per-primitive detail in the workflow transcript (frontmatter).
 
 ## Vendor canonical → decision (one line each)
 
