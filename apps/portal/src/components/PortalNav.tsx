@@ -1,10 +1,10 @@
 import * as NavBar from '@blueprint/ui/navbar';
 import { AudienceSwitcher, useAudiencePreference } from '@blueprint/ui';
 
-// REPLACE_FOR_PROJECT_NAME — the initiative's display name (brand label).
+// Blueprint Platform — the initiative's display name (brand label).
 // Stamped from blueprint.yml `name` at stamp time; matches the token the
 // Layout uses for <title> / footer so the brand reads consistently.
-const PROJECT_NAME = 'REPLACE_FOR_PROJECT_NAME';
+const PROJECT_NAME = 'Blueprint Platform';
 
 // The 7-verb IA spine. This is the canonical Blueprint information
 // architecture and is always present regardless of which substrate sources

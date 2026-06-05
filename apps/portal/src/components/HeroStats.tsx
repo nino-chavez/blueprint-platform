@@ -8,6 +8,8 @@ export interface HeroStatsProps {
   showState?: boolean;
   /** Render the board tile — true only when the board source exists. */
   showBoard?: boolean;
+  /** Decisions directory label, from portalConfig().decisions.dir. */
+  decisionsDir?: string;
 }
 
 /**
@@ -24,6 +26,7 @@ export function HeroStats({
   adrCount,
   showState = false,
   showBoard = false,
+  decisionsDir = 'decisions',
 }: HeroStatsProps) {
   const visibleCount = (showState ? 1 : 0) + 1 /* ADR always */ + (showBoard ? 1 : 0);
   const gridCols =
@@ -71,7 +74,7 @@ export function HeroStats({
           </span>
         </div>
         <p className="mt-1 text-xs text-contrast-500">
-          indexed at <code className="font-mono text-[10px]">docs/decisions/</code>
+          indexed at <code className="font-mono text-[10px]">{decisionsDir}/</code>
         </p>
       </div>
 
