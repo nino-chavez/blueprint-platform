@@ -61,9 +61,8 @@ org-authored reviewers without forking.
 Honest state today:
 
 - **Explore now** — the portal + this repo are live and public. Nothing to install.
-- **Run it** — the CLI (`@nino-chavez-labs/blueprint-cli`) is built but **not yet on
-  npm**, and deploys currently target a hackathon Cloudflare account. Once it's
-  published, the on-ramp is:
+- **Run it** — the CLI is **live on npm** (`@nino-chavez-labs/blueprint-cli`). The
+  on-ramp:
 
   ```bash
   npx @nino-chavez-labs/blueprint-cli init --pattern=A --target=my-initiative
