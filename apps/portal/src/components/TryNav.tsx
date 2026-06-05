@@ -1,19 +1,35 @@
+import type { FeatureKey } from '@/lib/portal-config';
+
 interface TryNavProps {
   currentPath: string;
+  /**
+   * Computed feature flags from portalConfig(). The Scenarios tab is hidden
+   * when no scenarios source is wired for this initiative.
+   */
+  features?: Partial<Record<FeatureKey, boolean>>;
 }
 
-const TABS: Array<{ href: string; label: string; hint: string }> = [
-  { href: '/try',           label: 'Live surfaces', hint: '3 deployments, iframed' },
-  { href: '/try/scenarios', label: 'Scenarios',     hint: '19 scripted demos' },
+interface TryTab {
+  href: string;
+  label: string;
+  hint: string;
+  feature?: FeatureKey;
+}
+
+const TABS: TryTab[] = [
+  { href: '/try',           label: 'Live surfaces', hint: 'iframed surfaces' },
+  { href: '/try/scenarios', label: 'Scenarios',     hint: 'scripted demos',  feature: 'scenarios' },
 ];
 
-export function TryNav({ currentPath }: TryNavProps) {
+export function TryNav({ currentPath, features }: TryNavProps) {
+  const visibleTabs = TABS.filter((tab) => !tab.feature || features?.[tab.feature]);
+
   return (
     <nav
       aria-label="Try sub-sections"
       className="mb-8 flex flex-wrap items-center gap-1 rounded-lg border border-contrast-200 bg-background p-1"
     >
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive =
           tab.href === '/try'
             ? currentPath === '/try' || currentPath === '/try/'

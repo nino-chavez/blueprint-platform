@@ -7,9 +7,10 @@
  * Same source data the satellite read; rendered natively here so the portal
  * is the single front door.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { repoRoot } from './repo-root';
+import { portalConfig, type SourceKey } from './portal-config';
 import {
   EPICS,
   deriveGatesForEpic,
@@ -22,6 +23,23 @@ import {
 } from '@blueprint/gate-derive';
 
 const REPO_ROOT = repoRoot();
+
+/**
+ * Read + JSON-parse a configured source file. Returns null when the source is
+ * unconfigured (Tier 0) or missing/unreadable — never throws. Mirror of the
+ * primitive in derived.ts so every status loader degrades to empty uniformly.
+ */
+function readSource<T>(key: SourceKey): T | null {
+  const rel = portalConfig().sources[key];
+  if (!rel) return null;
+  try {
+    const path = resolve(REPO_ROOT, rel);
+    if (!existsSync(path)) return null;
+    return JSON.parse(readFileSync(path, 'utf8')) as T;
+  } catch {
+    return null;
+  }
+}
 
 export type GateColor = DeriveColor;
 
@@ -96,6 +114,27 @@ export interface CrossCuttingStats {
   crossCuttingPct: number;
 }
 
+function emptyGateStatusSummary(): GateStatusSummary {
+  const perGate: Record<number, Record<GateColor, number>> = {};
+  for (let i = 1; i <= 10; i++) {
+    perGate[i] = { green: 0, yellow: 0, red: 0, gray: 0 };
+  }
+  return {
+    epics: [],
+    perGate,
+    totals: { green: 0, yellow: 0, red: 0, gray: 0 },
+    latestAuditDate: '',
+    dataAsOf: '',
+    dataCommit: '',
+    stageCounts: {
+      mechanical_failing: 0,
+      mechanical_passing_unattested: 0,
+      mechanical_passing_stale_attestation: 0,
+      mechanical_passing_attested: 0,
+    },
+  };
+}
+
 let _gateCache: GateStatusSummary | null = null;
 
 /**
@@ -114,6 +153,14 @@ let _gateCache: GateStatusSummary | null = null;
  */
 export function loadGateStatus(): GateStatusSummary {
   if (_gateCache) return _gateCache;
+
+  // Tier 0 / gates disabled: return an empty grid so @blueprint/gate-derive
+  // never yields data and the gates surfaces hide. EPICS is [] in the generic
+  // substrate anyway, but the feature flag is the authoritative switch.
+  if (!portalConfig().features.gates) {
+    _gateCache = emptyGateStatusSummary();
+    return _gateCache;
+  }
 
   const state = readStateDerive(REPO_ROOT);
 
@@ -201,14 +248,16 @@ export function loadGateStatus(): GateStatusSummary {
 let _crossCuttingCapabilitiesCache: CrossCuttingGroup[] | null = null;
 
 /**
- * Cross-cutting capability families emitted by tools/state-derive that don't
- * map to per-epic gates: BigEng platform conventions, ratified ADRs, BRD NFRs,
- * persona scenarios, CI hygiene + testing baseline.
- *
- * These were derived but unread until 2026-05-21.
+ * Cross-cutting capability families emitted by a consumer's state-derive that
+ * don't map to per-epic gates: platform conventions, ratified decisions, NFRs,
+ * persona scenarios, CI hygiene + testing baseline. Empty unless gates enabled.
  */
 export function loadCrossCuttingCapabilities(): CrossCuttingGroup[] {
   if (_crossCuttingCapabilitiesCache) return _crossCuttingCapabilitiesCache;
+  if (!portalConfig().features.gates) {
+    _crossCuttingCapabilitiesCache = [];
+    return _crossCuttingCapabilitiesCache;
+  }
   const state = readStateDerive(REPO_ROOT);
   _crossCuttingCapabilitiesCache = deriveCrossCuttingGroups(state);
   return _crossCuttingCapabilitiesCache;
@@ -269,12 +318,28 @@ export interface AttestationsSummary {
   attestations: RawAttestation[];
 }
 
+const EMPTY_ATTESTATIONS_SUMMARY: AttestationsSummary = {
+  generatedAt: '',
+  total: 0,
+  byStatus: { pending: 0, attested: 0, expired: 0 },
+  byGating: {
+    'marketplace-blocking': 0,
+    'ga-blocking': 0,
+    'soft-gating': 0,
+    'informational': 0,
+  },
+  attestations: [],
+};
+
 let _attestationsCache: AttestationsSummary | null = null;
 
 export function loadAttestations(): AttestationsSummary {
   if (_attestationsCache) return _attestationsCache;
-  const path = resolve(REPO_ROOT, 'docs/audits/derived/_attestations.json');
-  const raw: RawAttestationsFile = JSON.parse(readFileSync(path, 'utf8'));
+  const raw = readSource<RawAttestationsFile>('attestations');
+  if (!raw || !Array.isArray(raw.attestations)) {
+    _attestationsCache = EMPTY_ATTESTATIONS_SUMMARY;
+    return _attestationsCache;
+  }
 
   const byStatus = { pending: 0, attested: 0, expired: 0 };
   const byGating: Record<RawAttestation['gating'], number> = {
@@ -377,27 +442,46 @@ export interface DepGraphData {
  * computation happens client-side in the React component since it needs DOM
  * geometry for edge routing.
  */
+const EMPTY_DEP_GRAPH: DepGraphData = {
+  schema_version: '',
+  generated_at: '',
+  source: '',
+  source_commit: '',
+  counts: { nodes: 0, edges: 0, stub_nodes: 0, open_issues_with_blockers: 0 },
+  nodes: [],
+  edges: [],
+};
+
 export function loadDepGraph(): DepGraphData {
   if (_depGraphCache) return _depGraphCache;
-  const path = resolve(REPO_ROOT, 'docs/audits/derived/_dep-graph.json');
-  _depGraphCache = JSON.parse(readFileSync(path, 'utf8')) as DepGraphData;
+  const raw = readSource<DepGraphData>('dep_graph');
+  _depGraphCache = raw && Array.isArray(raw.nodes) ? raw : EMPTY_DEP_GRAPH;
   return _depGraphCache;
 }
 
 /**
- * Read docs/hive/_proposals.json once and bucket each proposal as epic-affiliated
- * (title carries `[Epic-N]` or `(epic-N)` prefix) vs cross-cutting (substrate /
- * tooling / methodology / CI work with no BRD epic anchor). The original
- * subs-status page exposed this as a "traceability gap" warning.
+ * Read the configured proposals source once and bucket each proposal as
+ * epic-affiliated (title matches the configured epic-tracker title pattern)
+ * vs cross-cutting (substrate / tooling / methodology / CI work with no epic
+ * anchor). Surfaced as a "traceability gap" warning when proposals are wired.
  */
 export function loadCrossCuttingStats(): CrossCuttingStats {
   if (_crossCuttingCache) return _crossCuttingCache;
-  const path = resolve(REPO_ROOT, 'docs/hive/_proposals.json');
-  const raw: RawProposalsFile = JSON.parse(readFileSync(path, 'utf8'));
+  const raw = readSource<RawProposalsFile>('proposals');
+  if (!raw || !Array.isArray(raw.proposals)) {
+    _crossCuttingCache = {
+      totalProposals: 0,
+      epicAffiliated: 0,
+      crossCutting: 0,
+      crossCuttingPct: 0,
+    };
+    return _crossCuttingCache;
+  }
+  const epicTitlePattern = portalConfig().board.epicTracker.titlePattern;
   let epicAffiliated = 0;
   let crossCutting = 0;
   for (const p of raw.proposals) {
-    if (/\[Epic-\d+\]|\(epic-\d+\)/i.test(p.title)) epicAffiliated++;
+    if (epicTitlePattern.test(p.title)) epicAffiliated++;
     else crossCutting++;
   }
   const total = epicAffiliated + crossCutting;
@@ -412,8 +496,11 @@ export function loadCrossCuttingStats(): CrossCuttingStats {
 
 export function loadDependencies(): DependenciesSummary {
   if (_depsCache) return _depsCache;
-  const path = resolve(REPO_ROOT, 'docs/hive/_proposals.json');
-  const raw: RawProposalsFile = JSON.parse(readFileSync(path, 'utf8'));
+  const raw = readSource<RawProposalsFile>('proposals');
+  if (!raw || !Array.isArray(raw.proposals)) {
+    _depsCache = { generatedAt: '', totalOpen: 0, topBlockers: [], readyCount: 0 };
+    return _depsCache;
+  }
 
   const openByNumber = new Map<number, RawProposal>();
   for (const p of raw.proposals) {

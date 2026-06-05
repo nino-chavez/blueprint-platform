@@ -1,410 +1,135 @@
-<!--
-  REPLACE_FOR_PROJECT — this file contains example business content carried over
-  from the bc-subscriptions reference initiative. Rewrite or delete before sharing
-  with stakeholders. The portal-pattern-a-conformance-reviewer treats this banner
-  as a block — resolve before sharing with stakeholders.
--->
 ---
 import Layout from '@/layouts/Layout.astro';
 import { InspectNav } from '@/components/InspectNav';
-import { GateMatrix, CrossCuttingMatrix } from '@/components/SubstrateDashboards';
-import {
-  loadGateStatus,
-  loadAttestations,
-  loadCrossCuttingStats,
-  loadCrossCuttingCapabilities,
-} from '@/lib/status';
+import { GateMatrix } from '@/components/SubstrateDashboards';
+import { loadGateStatus, loadAttestations } from '@/lib/status';
+import { portalConfig } from '@/lib/portal-config';
 
+const cfg = portalConfig();
+const gatesEnabled = cfg.features.gates;
 const gates = loadGateStatus();
 const atts = loadAttestations();
-const xcut = loadCrossCuttingStats();
-const crossCapabilities = loadCrossCuttingCapabilities();
 
-const REPO = 'https://github.com/nino-chavez/blueprint-platform/blob/main';
+// Generic gate labels, if the consumer configured them in blueprint.yml's
+// portal.gates.gate_labels. Empty at Tier-0 — the legend below collapses to the
+// color key alone, and the numbered-gate strip hides.
+const gateLabels = cfg.gates.gateLabels;
+
 const epicsFullyGated = gates.epics.filter((e) =>
   Object.values(e.gates).every((c) => c === 'green' || c === 'gray'),
 ).length;
+const dataAsOf = gates.dataAsOf ? gates.dataAsOf.slice(0, 16).replace('T', ' ') + 'Z' : '';
+const dataCommit = gates.dataCommit ? gates.dataCommit.slice(0, 8) : '';
 ---
-<Layout title="Gate status — Inspect" description="10-gate Epic DoD compliance matrix.">
+<!--
+  REPLACE_FOR_PROJECT — this surface carries example/placeholder content from the
+  Blueprint reference template. Populate it from your initiative's deliverables (or
+  delete it) before sharing with stakeholders. The portal-pattern-a-conformance-
+  reviewer treats this banner as a block — resolve before sharing.
+-->
+<Layout title="Gate status — Inspect" description="Per-epic gate compliance matrix.">
   <header class="mb-6 max-w-3xl">
     <p class="mb-2 font-mono text-xs uppercase tracking-wide text-contrast-500">Inspect → Gate status</p>
     <h1 class="mb-3 font-heading text-4xl font-semibold leading-tight tracking-tight">
       Gate status.
     </h1>
     <p class="text-lg leading-relaxed text-contrast-500">
-      GA-readiness scorecard for the 10-gate Epic DoD (<a class="text-brand hover:underline" href={`${REPO}/docs/decisions/0057-epic-dod-upstream-to-big-blueprint.md`} target="_blank" rel="noreferrer">ADR-0057</a>). Each gate is a two-stage check: <strong>Stage 1</strong> — the automated check passes (mechanical, runs on every push to <code class="font-mono text-[11px]">main</code>); <strong>Stage 2</strong> — a human attests the artifacts are real quality (checkbox bound to the commit it was made against). A gate is green only when both stages pass; if files change after the attestation, the checkbox auto-invalidates and the gate falls back to yellow until re-checked.
+      Readiness scorecard for the per-epic gate Definition-of-Done. Each gate is a two-stage check: <strong>Stage 1</strong> — the automated check passes (mechanical, re-derived on every push); <strong>Stage 2</strong> — a human attests the artifacts are real quality (a checkbox bound to the commit it was made against). A gate is green only when both stages pass; if files change after the attestation, the checkbox auto-invalidates and the gate falls back to yellow until re-checked.
     </p>
-    <p class="mt-2 font-mono text-xs text-contrast-400">
-      {gates.dataAsOf && (
-        <>
-          Mechanical re-derived {gates.dataAsOf.slice(0, 16).replace('T', ' ')}Z
-          {gates.dataCommit && (<> @ <code class="font-mono">{gates.dataCommit.slice(0, 8)}</code></>)}
-          {' · '}
-        </>
-      )}
-      {gates.latestAuditDate && (<>last attestation {gates.latestAuditDate} · </>)}
-      {epicsFullyGated} / {gates.epics.length} epics fully gated
-    </p>
-    <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 max-w-3xl">
-      <div class="rounded border border-success/30 bg-success-background/30 px-2 py-1.5">
-        <p class="font-mono text-[10px] uppercase text-success-foreground">Both stages</p>
-        <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_attested}</p>
-      </div>
-      <div class="rounded border border-warning/30 bg-warning-background/30 px-2 py-1.5">
-        <p class="font-mono text-[10px] uppercase text-warning-foreground">Mech ✓, awaiting attestation</p>
-        <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_unattested}</p>
-      </div>
-      <div class="rounded border border-warning/30 bg-warning-background/30 px-2 py-1.5">
-        <p class="font-mono text-[10px] uppercase text-warning-foreground">↻ Needs re-attestation</p>
-        <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_stale_attestation}</p>
-      </div>
-      <div class="rounded border border-error/30 bg-error-background/30 px-2 py-1.5">
-        <p class="font-mono text-[10px] uppercase text-error-foreground">Mech ✗</p>
-        <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_failing}</p>
-      </div>
-    </div>
+    {gatesEnabled && (
+      <>
+        <p class="mt-2 font-mono text-xs text-contrast-400">
+          {dataAsOf && (
+            <>
+              Mechanical re-derived {dataAsOf}
+              {dataCommit && (<> @ <code class="font-mono">{dataCommit}</code></>)}
+              {' · '}
+            </>
+          )}
+          {gates.latestAuditDate && (<>last attestation {gates.latestAuditDate} · </>)}
+          {epicsFullyGated} / {gates.epics.length} epics fully gated
+        </p>
+        <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 max-w-3xl">
+          <div class="rounded border border-success/30 bg-success-background/30 px-2 py-1.5">
+            <p class="font-mono text-[10px] uppercase text-success-foreground">Both stages</p>
+            <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_attested}</p>
+          </div>
+          <div class="rounded border border-warning/30 bg-warning-background/30 px-2 py-1.5">
+            <p class="font-mono text-[10px] uppercase text-warning-foreground">Mech ✓, awaiting attestation</p>
+            <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_unattested}</p>
+          </div>
+          <div class="rounded border border-warning/30 bg-warning-background/30 px-2 py-1.5">
+            <p class="font-mono text-[10px] uppercase text-warning-foreground">↻ Needs re-attestation</p>
+            <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_passing_stale_attestation}</p>
+          </div>
+          <div class="rounded border border-error/30 bg-error-background/30 px-2 py-1.5">
+            <p class="font-mono text-[10px] uppercase text-error-foreground">Mech ✗</p>
+            <p class="font-mono text-sm font-semibold">{gates.stageCounts.mechanical_failing}</p>
+          </div>
+        </div>
+      </>
+    )}
   </header>
 
   <InspectNav currentPath={Astro.url.pathname} />
 
-  {/* Color + gate legend strip */}
-  <section class="mb-6 rounded-lg border border-contrast-200 bg-background p-4">
-    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-contrast-500">
-      <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block h-2.5 w-2.5 rounded-full bg-success"></span>Green — Stage 1 + Stage 2 both pass
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block h-2.5 w-2.5 rounded-full bg-warning"></span>Yellow — Stage 1 passes; Stage 2 unchecked or stale
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block h-2.5 w-2.5 rounded-full bg-error"></span>Red — Stage 1 fails (artifacts missing)
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block h-2.5 w-2.5 rounded-full bg-contrast-200"></span>Gray — N/A
-      </span>
-      <span class="inline-flex items-center gap-1.5 ml-2 border-l border-contrast-200 pl-3">
-        <span class="text-warning-foreground">↻</span> needs re-attestation (files changed since checkbox)
-      </span>
-    </div>
-    <p class="mt-3 text-xs leading-relaxed text-contrast-500">
-      <span class="font-semibold text-foreground">Gates:</span>
-      <span class="font-mono text-[11px]">1</span> Feature complete ·
-      <span class="font-mono text-[11px]">2</span> Hardened ·
-      <span class="font-mono text-[11px]">3</span> Security reviewed ·
-      <span class="font-mono text-[11px]">4</span> Performance baselined ·
-      <span class="font-mono text-[11px]">5</span> Tested at risk tier ·
-      <span class="font-mono text-[11px]">6</span> Documented ·
-      <span class="font-mono text-[11px]">7</span> User-guided ·
-      <span class="font-mono text-[11px]">8</span> Demo-asset-ready ·
-      <span class="font-mono text-[11px]">9</span> Knowledge-transferred ·
-      <span class="font-mono text-[11px]">10</span> Change-managed.
-      Hover any cell for mechanical-vs-operator detail.
-    </p>
-  </section>
-
-  {/* Attestations callout — engineering readiness vs human attestations split */}
-  <aside class="mb-6 rounded-lg border border-contrast-200 border-l-4 border-l-warning bg-background p-4">
-    <p class="text-sm leading-relaxed text-foreground">
-      <span class="font-semibold">Human attestations tracked separately.</span> This dashboard tracks engineering readiness (10 gates × {gates.epics.length} epics, auto-derived). Readiness items requiring human judgment instead of code live on the <a href="/inspect/attestations" class="text-brand hover:underline">attestations</a> page.
-    </p>
-    <p class="mt-2 font-mono text-xs text-contrast-500">
-      {atts.total} attestations open ·
-      {' '}{atts.byGating['ga-blocking']} GA-blocking ·
-      {' '}{atts.byGating['marketplace-blocking']} marketplace-blocking ·
-      {' '}{atts.byGating['soft-gating']} soft-gating ·
-      {' '}{atts.byStatus.pending} pending sign-off.
-    </p>
-  </aside>
-
-  <GateMatrix gates={gates} />
-
-  {/* Cross-cutting capabilities — substrate-level signal from _state.json that
-       doesn't map to per-epic gates (BigEng platform conventions, ratified
-       ADRs, BRD NFRs, persona scenarios, CI hygiene + testing baseline). */}
-  <section class="mt-8">
-    <header class="mb-4">
-      <h2 class="font-heading text-2xl font-semibold tracking-tight">Cross-cutting capabilities.</h2>
-      <p class="mt-1 text-sm text-contrast-500 max-w-3xl">
-        Substrate-level signal derived from <code class="font-mono text-[11px]">tools/state-derive/</code> that doesn't map to a per-epic gate. These families measure platform conventions, ratified architecture decisions, NFRs, persona scenarios, and infrastructure hygiene. Each card is a roll-up across N capabilities; click to expand the per-capability list.
+  {!gatesEnabled ? (
+    <section class="rounded-lg border border-dashed border-contrast-300 bg-background p-5">
+      <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-contrast-400">Not configured</p>
+      <p class="text-sm leading-relaxed text-contrast-500">
+        Gate tracking is not configured for this initiative. Enable it in <code class="font-mono text-xs">blueprint.yml</code> under <code class="font-mono text-xs">portal.gates</code> (set <code class="font-mono text-xs">enabled: true</code>, wire <code class="font-mono text-xs">epics_source</code>, and supply per-gate <code class="font-mono text-xs">gate_labels</code>) once a consumer-side state-derive emits per-epic gate results.
       </p>
-    </header>
-    <CrossCuttingMatrix groups={crossCapabilities} />
-  </section>
+    </section>
+  ) : (
+    <>
+      {/* Color + gate legend strip — color key always; numbered gate strip only when labels configured */}
+      <section class="mb-6 rounded-lg border border-contrast-200 bg-background p-4">
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-contrast-500">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-success"></span>Green — Stage 1 + Stage 2 both pass
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-warning"></span>Yellow — Stage 1 passes; Stage 2 unchecked or stale
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-error"></span>Red — Stage 1 fails (artifacts missing)
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-contrast-200"></span>Gray — N/A
+          </span>
+          <span class="inline-flex items-center gap-1.5 ml-2 border-l border-contrast-200 pl-3">
+            <span class="text-warning-foreground">↻</span> needs re-attestation (files changed since checkbox)
+          </span>
+        </div>
+        {gateLabels.length > 0 && (
+          <p class="mt-3 text-xs leading-relaxed text-contrast-500">
+            <span class="font-semibold text-foreground">Gates:</span>
+            {gateLabels.map((label, i) => (
+              <>
+                {' '}<span class="font-mono text-[11px]">{i + 1}</span> {label}{i < gateLabels.length - 1 ? ' ·' : '.'}
+              </>
+            ))}
+            {' '}Hover any cell for mechanical-vs-operator detail.
+          </p>
+        )}
+      </section>
 
-  {/* Cross-cutting proposal work — substrate / tooling / methodology proposals with no BRD epic anchor */}
-  <section class="mt-8 rounded-lg border border-error/30 bg-error-background/30 p-4">
-    <h2 class="mb-2 font-heading text-base font-semibold tracking-tight text-error-foreground">
-      Cross-cutting work
-      <span class="ml-2 font-mono text-[11px] font-normal text-contrast-500">
-        {xcut.crossCutting} of {xcut.totalProposals} proposals ({xcut.crossCuttingPct}%) — no BRD epic affiliation
-      </span>
-    </h2>
-    <p class="text-sm leading-relaxed text-foreground">
-      <span class="font-semibold">Traceability gap.</span> {xcut.crossCutting} of {xcut.totalProposals} tracked proposals ({xcut.crossCuttingPct}%) carry no <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">[Epic-N]</code> prefix. This is substrate, tooling, methodology, CI, and refactor work — load-bearing for the project but invisible against the BRD spec.
-      To improve: add <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">epic: N</code> to <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">hive-meta</code> on future proposals, or file <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">[Epic-Foundation]</code> umbrella trackers for substrate work itself.
-    </p>
-  </section>
+      {/* Attestations callout — engineering readiness vs human attestations split */}
+      <aside class="mb-6 rounded-lg border border-contrast-200 border-l-4 border-l-warning bg-background p-4">
+        <p class="text-sm leading-relaxed text-foreground">
+          <span class="font-semibold">Human attestations tracked separately.</span> This dashboard tracks engineering readiness (auto-derived per epic). Readiness items requiring human judgment instead of code live on the <a href="/inspect/attestations" class="text-brand hover:underline">attestations</a> page.
+        </p>
+        {atts.total > 0 && (
+          <p class="mt-2 font-mono text-xs text-contrast-500">
+            {atts.total} attestations open ·
+            {' '}{atts.byStatus.pending} pending sign-off.
+          </p>
+        )}
+      </aside>
 
-  {/* About this dashboard — the educational explainer the original page led with */}
-  <section class="mt-10 rounded-lg border border-contrast-200 bg-background p-6">
-    <h2 class="mb-4 font-heading text-2xl font-semibold tracking-tight">About this dashboard</h2>
-
-    <h3 class="mt-2 mb-2 font-heading text-base font-semibold">Quick orientation (read this first)</h3>
-    <p class="mb-3 text-sm leading-relaxed">
-      This page tracks how ready <span class="font-semibold">blueprint-platform</span> is to ship. The product is split into ~{gates.epics.length} <em>epics</em> (think: features). Each epic must pass 10 quality gates before it counts as "ready." The grid above shows which gates each epic has passed.
-    </p>
-    <p class="mb-2 text-sm leading-relaxed"><strong>For a stakeholder skimming this in 30 seconds:</strong></p>
-    <ul class="mb-4 list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li>The <strong>top-of-matrix counters</strong> (Green / Yellow / Red) summarize where the whole project stands.</li>
-      <li>Each <strong>row</strong> is one epic. Each <strong>dot</strong> is one of its 10 gates.
-        <span class="text-success-foreground">●&nbsp;Green</span> = passed.
-        <span class="text-warning-foreground">●&nbsp;Yellow</span> = partial / in progress.
-        <span class="text-error-foreground">●&nbsp;Red</span> = not started.</li>
-      <li>The <strong>% green</strong> column at the right is the epic's overall score.</li>
-      <li><strong>Click an epic title</strong> to open its full audit document with the evidence behind every gate.</li>
-    </ul>
-    <p class="mb-4 text-sm leading-relaxed">That's the whole dashboard. The rest of this page explains how it works and what each gate means.</p>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">What an "epic" is here</h3>
-    <p class="mb-2 text-sm leading-relaxed">
-      An epic is one product capability. Examples from the grid above: "Merchant install &amp; BC app authentication" (Epic 1), "Charge scheduling &amp; execution" (Epic 10), "Subscriber portal access &amp; auth" (Epic 17). The full list lives in the <a class="text-brand hover:underline" href={`${REPO}/BRD.md`} target="_blank" rel="noreferrer">Business Requirements Document (BRD)</a>.
-    </p>
-    <p class="mb-4 text-sm leading-relaxed">
-      Each epic also carries a <strong>risk tier</strong> (the small P0/P1/P2/P3 chip next to the epic name): <strong>P0</strong> = critical (charge engine, payment, install); <strong>P1</strong> = important (subscriber portal, dashboards); <strong>P2</strong> = useful (advanced flows); <strong>P3</strong> = nice-to-have. Higher-risk epics need stricter evidence to pass certain gates.
-    </p>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">What each gate means (in plain language)</h3>
-    <div class="overflow-x-auto">
-      <table class="mb-4 w-full border-collapse text-sm">
-        <thead class="bg-contrast-100/40">
-          <tr>
-            <th class="w-12 border border-contrast-200 px-2 py-2 text-left font-mono text-xs uppercase tracking-wide text-contrast-500">#</th>
-            <th class="w-44 border border-contrast-200 px-3 py-2 text-left">Name</th>
-            <th class="border border-contrast-200 px-3 py-2 text-left">The question it answers</th>
-            <th class="border border-contrast-200 px-3 py-2 text-left">How we check</th>
-          </tr>
-        </thead>
-        <tbody class="align-top">
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">1</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Feature complete</td><td class="border border-contrast-200 px-3 py-2">Did we actually build the feature the spec describes? Every required user story has working code shipped to production?</td><td class="border border-contrast-200 px-3 py-2">Automated cross-check: scans the codebase for routes, screens, and tables each user story requires; flags anything missing or only half-built.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">2</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Hardened</td><td class="border border-contrast-200 px-3 py-2">When things go wrong (network blip, payment processor down, bad input), does the code fail gracefully? Are there tests proving it?</td><td class="border border-contrast-200 px-3 py-2">Checks that the epic has a "failure-injection" test file — automated tests that deliberately simulate failures and confirm the code handles them.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">3</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Security reviewed</td><td class="border border-contrast-200 px-3 py-2">Have we considered how a bad actor could abuse this feature, and put protections in place? Are PCI / GDPR / SOC2 obligations met?</td><td class="border border-contrast-200 px-3 py-2">Requires a written security review document walking through threat scenarios per the industry-standard <em>STRIDE</em> framework (see glossary).</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">4</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Performance baselined</td><td class="border border-contrast-200 px-3 py-2">Will this feature be fast enough when many subscribers use it at once? Have we measured?</td><td class="border border-contrast-200 px-3 py-2">Checks for a performance budget doc (target response times) plus an automated load-test script using the open-source <em>k6</em> tool.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">5</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Tested at risk tier</td><td class="border border-contrast-200 px-3 py-2">Do we have automated tests proving this feature works end-to-end? Higher-risk epics need more tests.</td><td class="border border-contrast-200 px-3 py-2">Counts the unit, integration, and E2E test files. P0 features additionally need a workflow that runs tests nightly against a real BC test store.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">6</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Documented</td><td class="border border-contrast-200 px-3 py-2">If something breaks at 2am, can the on-call engineer figure out what to do without paging the original developer?</td><td class="border border-contrast-200 px-3 py-2">Requires an on-call runbook listing the top failure modes, severity classification, and what to do for each.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">7</td><td class="border border-contrast-200 px-3 py-2 font-semibold">User-guided</td><td class="border border-contrast-200 px-3 py-2">Can a merchant set this feature up by themselves, without filing a support ticket?</td><td class="border border-contrast-200 px-3 py-2">Requires a merchant-facing guide doc: what the feature does, step-by-step setup, common troubleshooting.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">8</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Demo-asset-ready</td><td class="border border-contrast-200 px-3 py-2">Can we show this feature to a prospect in 90 seconds? Is there a polished demo video?</td><td class="border border-contrast-200 px-3 py-2">Requires a written demo storyboard plus an operator-recorded MP4. The video can only be produced by a human, so this gate often lingers yellow even when the feature itself works.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">9</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Knowledge-transferred</td><td class="border border-contrast-200 px-3 py-2">If a new engineer joined the team, could they understand what this epic does, what its known limitations are, and where the follow-up work is?</td><td class="border border-contrast-200 px-3 py-2">Requires a per-epic handoff document covering shipped state, known limitations, and follow-up roadmap.</td></tr>
-          <tr><td class="border border-contrast-200 px-2 py-2 text-center font-mono">10</td><td class="border border-contrast-200 px-3 py-2 font-semibold">Change-managed</td><td class="border border-contrast-200 px-3 py-2">Will we know if this feature breaks in production? Are alerts set up?</td><td class="border border-contrast-200 px-3 py-2">Requires alert thresholds plus runtime telemetry hooks wired into the code, so when a real merchant uses the feature we emit metrics we can graph and alert on.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">How are these 10 gates chosen? (vs industry standards)</h3>
-    <p class="mb-2 text-sm leading-relaxed">
-      <strong>Short answer:</strong> the 10-gate framework is project-specific (custom to blueprint-platform), but every gate maps to a well-known industry concept. It's an opinionated synthesis, not a published standard.
-    </p>
-    <p class="mb-2 text-sm leading-relaxed">
-      The canonical gate-to-framework mapping + per-framework reference extracts live at <a class="text-brand hover:underline" href={`${REPO}/docs/rag/sdlc-frameworks`} target="_blank" rel="noreferrer"><code class="font-mono text-[12px]">docs/rag/sdlc-frameworks/</code></a> (filed via Hive #1244). The summary below is a snapshot; the corpus is the source of truth.
-    </p>
-    <p class="mb-2 mt-3 text-sm leading-relaxed"><strong>Where each gate comes from:</strong></p>
-    <div class="overflow-x-auto">
-      <table class="mb-4 w-full border-collapse text-sm">
-        <thead class="bg-contrast-100/40">
-          <tr>
-            <th class="w-56 border border-contrast-200 px-3 py-2 text-left">Our gate</th>
-            <th class="border border-contrast-200 px-3 py-2 text-left">Industry equivalent</th>
-          </tr>
-        </thead>
-        <tbody class="align-top">
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">1 Feature complete</td><td class="border border-contrast-200 px-3 py-2">Agile "Definition of Done" — feature-completeness criterion. Universal.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">2 Hardened</td><td class="border border-contrast-200 px-3 py-2">ISO/IEC 25010 "Reliability" quality attribute. Google SRE Handbook "resilience testing." Netflix Chaos Engineering tradition.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">3 Security reviewed</td><td class="border border-contrast-200 px-3 py-2">OWASP ASVS (Application Security Verification Standard) + Microsoft STRIDE threat modeling + SOC2 Trust Services Criteria. Industry-mandatory for fintech.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">4 Performance baselined</td><td class="border border-contrast-200 px-3 py-2">Google SRE SLI/SLO methodology — defining service-level indicators + objectives before declaring a service ready.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">5 Tested at risk tier</td><td class="border border-contrast-200 px-3 py-2">Standard test pyramid (Cohn) — unit / integration / E2E coverage proportional to risk. Risk-tiered gating is common in regulated industries.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">6 Documented</td><td class="border border-contrast-200 px-3 py-2">Google SRE "Production Readiness Review" runbook requirement. Standard for any operationally-supported service.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">7 User-guided</td><td class="border border-contrast-200 px-3 py-2">Diátaxis documentation framework (tutorials / how-tos / reference / explanation). Standard product practice.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">8 Demo-asset-ready</td><td class="border border-contrast-200 px-3 py-2"><strong>Project-specific.</strong> Most engineering DoD frameworks don't include marketing assets. We do because blueprint-platform ships as a marketplace app where demos drive merchant adoption.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">9 Knowledge-transferred</td><td class="border border-contrast-200 px-3 py-2">"Bus factor" / "Truck factor" hygiene — informal industry concept, rarely a formal gate. Atlassian + GitLab have similar handoff norms.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2 font-semibold">10 Change-managed</td><td class="border border-contrast-200 px-3 py-2">SRE observability requirement (instrument before launch) + ITIL change-management discipline. Standard for production services.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p class="mb-2 mt-3 text-sm leading-relaxed"><strong>What's distinctive about this framework</strong> (vs typical 3-5 gate DoD checklists):</p>
-    <ul class="mb-4 list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li><strong>10 gates instead of 5</strong> — Most teams collapse Gates 2/3/4 into one "Quality" gate, or combine Gates 6/7/9 into one "Documentation" gate. We split them so each can be measured independently.</li>
-      <li><strong>Evidence-based, not checkbox-based</strong> — Most DoD frameworks are "the team agrees this is done." Ours requires a specific committed artifact (test file, runbook, security doc) before a gate flips green.</li>
-      <li><strong>Two-phase signal, not self-reported</strong> — Most checklists collapse "evidence exists" and "evidence is good" into one signal. We split them: mechanical CI confirms artifacts are present (and caps at yellow); the operator audit confirms quality. Drift between the two layers is surfaced, not hidden.</li>
-      <li><strong>Gate 8 (Demo) is unusual</strong> — Marketing-readiness isn't a typical engineering gate. We include it because we ship as a marketplace app, so a feature isn't actually "shippable" until it can be demonstrated to merchants.</li>
-    </ul>
-
-    <p class="mb-2 mt-3 text-sm leading-relaxed"><strong>What this framework deliberately doesn't gate</strong> (some industry checklists do):</p>
-    <ul class="mb-4 list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li><strong>Accessibility (WCAG)</strong> — Not currently gated. Covered partially via Gate 7 (merchant guide) but no explicit WCAG audit per epic.</li>
-      <li><strong>Internationalization (i18n)</strong> — Implicit (all admin strings flow through an i18n layer per ADR-0006) but not gated per-epic.</li>
-      <li><strong>Backwards compatibility</strong> — Tracked at the API-versioning level, not as an epic-level gate.</li>
-      <li><strong>Disaster recovery</strong> — Backup/restore testing is currently project-level, not gated per epic.</li>
-      <li><strong>Cost/economics</strong> — Per-epic cost dimensions are tracked (Gate 10 sub-criterion) but not a primary gate.</li>
-    </ul>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">Alignment with BigCommerce Engineering DoD</h3>
-    <p class="mb-2 text-sm leading-relaxed">
-      Because blueprint-platform ships as a BigCommerce marketplace app, <strong>BigCommerce's own Engineering DoD is the most-relevant framework</strong> — not just an industry reference. Every gate either aligns with a BigEng mandate, diverges deliberately, or carries an honest gap.
-    </p>
-    <p class="mb-2 text-sm leading-relaxed">
-      Full alignment matrix + per-gate analysis lives at <a class="text-brand hover:underline" href={`${REPO}/docs/rag/sdlc-frameworks/bigcommerce-bigeng.md`} target="_blank" rel="noreferrer"><code class="font-mono text-[12px]">docs/rag/sdlc-frameworks/bigcommerce-bigeng.md</code></a>. Summary:
-    </p>
-    <div class="overflow-x-auto">
-      <table class="mb-4 w-full border-collapse text-sm">
-        <thead class="bg-contrast-100/40">
-          <tr>
-            <th class="w-52 border border-contrast-200 px-3 py-2 text-left">Alignment</th>
-            <th class="border border-contrast-200 px-3 py-2 text-left">Gates</th>
-          </tr>
-        </thead>
-        <tbody class="align-top">
-          <tr><td class="border border-contrast-200 px-3 py-2"><span class="text-success-foreground">✅ Aligned</span></td><td class="border border-contrast-200 px-3 py-2">Gate 1 (Feature complete), Gate 2 (Hardened), Gate 5 (Tested)</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2"><span class="text-warning-foreground">⚠️ Partial alignment</span></td><td class="border border-contrast-200 px-3 py-2">Gate 3 (merchant-facing audit-log bridge missing), Gate 4 (our budgets looser than BC's &lt;2s page load / &lt;100ms p95 public-API bar), Gate 6 (we use project-local docs vs BC's KB), Gate 10 (we lack phased rollouts + 2-business-day postmortem cadence)</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2"><span class="text-error-foreground">❌ BC-mandated gaps</span></td><td class="border border-contrast-200 px-3 py-2">Gate 7 — BC requires WCAG 2.2 AA, localization, BigDesign components, Design team review. We don't gate any of these per-epic.</td></tr>
-          <tr><td class="border border-contrast-200 px-3 py-2">N/A</td><td class="border border-contrast-200 px-3 py-2">Gate 8 (BC doesn't gate demo readiness), Gate 9 (BC has incident RCA process but not per-feature handoff)</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="mb-2 mt-3 text-sm leading-relaxed"><strong>Distribution-model context for gaps:</strong></p>
-    <ul class="mb-4 list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li>If we stay a <strong>marketplace app</strong>: WCAG 2.2 AA + localization gaps are LOW severity (marketplace apps aren't audited the way native features are).</li>
-      <li>If we ever <strong>graduate to a native BC feature</strong>: WCAG, localization, merchant-facing audit log, phased rollouts, and postmortem cadence all become HIGH severity — they're hard requirements.</li>
-      <li>If we ever <strong>expose a public API</strong>: BC's API DoD applies (p95 &lt; 100ms, snake_case keys, cursor pagination, 1-year sunset rule for internal-with-path-to-public).</li>
-    </ul>
-    <p class="text-sm leading-relaxed">
-      The full gate definitions + sub-criteria + rationale live in the <a class="text-brand hover:underline" href={`${REPO}/docs/methodology/epic-definition-of-done.md`} target="_blank" rel="noreferrer">Definition-of-Done methodology doc (v0.4)</a>.
-    </p>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">How states are computed</h3>
-    <p class="mb-3 text-sm leading-relaxed">
-      Every gate is a <strong>two-stage check</strong>. A gate is green only when both stages pass:
-    </p>
-    <ol class="mb-3 list-decimal space-y-2 pl-6 text-sm leading-relaxed">
-      <li>
-        <strong>Stage 1 — Mechanical check.</strong> Runs on every push to <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">main</code>. Boolean: passed or failed. For Gate 1 it reads <code class="font-mono text-[11px]">_state.json</code> and confirms every matching capability is COMPLIANT or MANUAL_REVIEW (no PARTIAL, no NON_COMPLIANT, no ABSENT). For Gates 2-10 it confirms the required artifacts exist on disk (runbook present, E2E spec present, etc.). Self-updates with every commit.
-      </li>
-      <li>
-        <strong>Stage 2 — Human attestation.</strong> A checkbox written to the audit doc frontmatter (<code class="font-mono text-[11px]">attested:</code> block). The operator reads the artifacts Stage 1 found, confirms they're real quality (not just present), and records the date + git commit they audited against. The attestation is bound to that commit: if any of the gate's dependent files change after the attestation, the checkbox auto-invalidates and the gate falls back to yellow with a <span class="text-warning-foreground">↻</span> re-attestation indicator until checked again.
-      </li>
-    </ol>
-    <p class="mb-3 text-sm leading-relaxed">
-      <strong>Color computation:</strong>
-    </p>
-    <ul class="mb-3 list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li><span class="inline-block h-2.5 w-2.5 rounded-full bg-success align-middle"></span> Green — Stage 1 ✓ + Stage 2 ✓ (attestation fresh: dependent files unchanged since checkbox).</li>
-      <li><span class="inline-block h-2.5 w-2.5 rounded-full bg-warning align-middle"></span> Yellow — Stage 1 ✓ + Stage 2 ☐ (no attestation) or Stage 1 ✓ + Stage 2 ↻ (attestation stale because files changed).</li>
-      <li><span class="inline-block h-2.5 w-2.5 rounded-full bg-error align-middle"></span> Red — Stage 1 ✗ (required artifacts missing). Stage 2 doesn't matter — gate is red until the mechanical check passes.</li>
-      <li><span class="text-warning-foreground font-semibold">↻</span> badge — gate is yellow specifically because the attestation went stale (mechanical passes, files moved); the operator needs to re-check the box.</li>
-    </ul>
-    <p class="mb-4 text-sm leading-relaxed">
-      The header counters break the 280 cells down by the four combinations of the two booleans. The actionable signals are <strong>Mech ✓, awaiting attestation</strong> (Stage 1 done; needs a human checkbox) and <strong>↻ Needs re-attestation</strong> (the file the attestation depended on has been edited since).
-    </p>
-
-    <h3 class="mt-6 mb-3 font-heading text-base font-semibold">Glossary</h3>
-    <p class="mb-3 text-sm leading-relaxed">Technical terms used above and in the audit docs, for non-developer readers:</p>
-    <dl class="space-y-3 text-sm">
-      <div>
-        <dt class="font-semibold">BigEng / BigCommerce Engineering DoD</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">BigCommerce's internal Definition-of-Done for engineering teams. Mandates include WCAG 2.2 AA accessibility conformance, localization for storefront + control panel strings, &lt;2s page load (or &lt;200ms TTFB), audit-log events for all merchant-facing actions, fault tolerance / graceful degradation, deployments controlled by experiment flags with phased rollouts, postmortem within ~2 business days, and use of BigDesign UI components.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">STRIDE</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">A standard security threat-modeling framework developed at Microsoft. Acronym for six attack categories: <strong>S</strong>poofing (pretending to be someone else), <strong>T</strong>ampering (modifying data illegitimately), <strong>R</strong>epudiation (denying an action you took), <strong>I</strong>nformation disclosure (leaking data), <strong>D</strong>enial of service (crashing the system), <strong>E</strong>levation of privilege (gaining permissions you shouldn't have).</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">k6</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">An open-source load-testing tool from Grafana Labs. You write a script that simulates many concurrent users; k6 runs it and reports response-time statistics. Used for Gate 4 to prove the feature handles realistic traffic.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">p95 latency</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">"95th percentile response time." If we say "p95 ≤ 800ms," it means 95% of requests complete in 800 milliseconds or less. Industry-standard way to talk about performance because the slowest 5% often matter most for user experience.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">PCI / GDPR / SOC2</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Three compliance frameworks blueprint-platform must respect. <strong>PCI DSS</strong> (Payment Card Industry Data Security Standard) regulates how systems handle credit card data. <strong>GDPR</strong> (EU General Data Protection Regulation) governs personal data handling and subscriber rights (deletion, export). <strong>SOC2</strong> (Service Organization Control 2) is an audit framework for security controls — used by enterprise customers to vet vendors.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">SRE / SLI / SLO</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500"><strong>SRE</strong> = Site Reliability Engineering, the discipline Google formalized for operating production services. <strong>SLI</strong> = Service Level Indicator (a metric you measure, e.g., "% of requests under 500ms"). <strong>SLO</strong> = Service Level Objective (the target for an SLI, e.g., "99.5% under 500ms"). Defining SLIs/SLOs before launch is the SRE prerequisite for production readiness.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Definition of Done (DoD)</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">An agile concept: the shared checklist a team uses to decide if work is actually finished. Most teams have 3-7 items; ours has 10 gates and a heavier evidence requirement.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">ISO/IEC 25010</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">The international standard for software quality attributes. Lists 8 top-level dimensions including reliability, performance, security, maintainability, and usability. Our 10 gates map to several of these dimensions.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">OWASP ASVS</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Application Security Verification Standard, published by the Open Web Application Security Project. A checklist of security controls organized by risk level. Our Gate 3 (Security reviewed) implicitly references ASVS-level controls.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">ITIL</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Information Technology Infrastructure Library, the most widely-adopted IT service management framework. Includes change-management discipline relevant to our Gate 10.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">ADR (Architecture Decision Record)</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">A short document capturing one significant architectural decision (e.g., "we chose Cloudflare Workers over AWS Lambda because…"). ADRs live in <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">docs/decisions/</code> and are numbered sequentially (ADR-0001, ADR-0002, …).</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">BRD (Business Requirements Document)</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">The product spec. Defines every epic and its acceptance criteria. <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">BRD.md</code> in the repository root.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Runbook</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">The on-call playbook for when something goes wrong in production. Lists known failure modes, how to diagnose them, and what to do about each.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Audit doc</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Per-epic detailed scorecard at <code class="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">docs/audits/epic-dod/epic-NN-dod-status.md</code>. The dashboard reads the top-of-file frontmatter; reviewers read the full body to see evidence behind every gate.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Webhook</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">A way for two systems to notify each other automatically. Example: when a subscriber checks out on BigCommerce, BC sends a webhook to blueprint-platform saying "this order just happened," and blueprint-platform creates the subscription record.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">OpenAPI</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">An industry-standard format for documenting an API. Defines every endpoint, what it accepts, and what it returns.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">End-to-end (E2E) test</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">An automated test that drives the actual user interface (clicks buttons, fills forms) and verifies the whole flow works. Heavier than a unit test but catches things unit tests miss.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Sandbox-scenario CI</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">An automated test that runs nightly against a real BigCommerce test store (called a "sandbox"). Catches integration issues that mocked tests miss. CI = "Continuous Integration" = the automated build/test pipeline.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Cloudflare Workers / D1 / KV</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Cloud infrastructure components blueprint-platform runs on. <strong>Workers</strong> = the code execution platform. <strong>D1</strong> = a SQL database. <strong>KV</strong> = a key-value cache.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Phase 1a / 1b / 2 / 3</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">The cohorts (groups) of epics, ordered by delivery sequence. Phase 1a = foundation features. Phase 1b = lifecycle features. Phase 2 = full feature set. Phase 3 = advanced. Phasing per <a class="text-brand hover:underline" href={`${REPO}/docs/decisions/0021-epic-gating-map-phase-cohorts.md`} target="_blank" rel="noreferrer">ADR-0021</a>.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Wave 1 / Wave 3 / cold-read</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Project-specific terminology for the close-out methodology. Each epic goes through multiple "waves" of work: Wave 1 lands the artifacts; Wave 3 is when an independent reviewer cold-reads the work to catch drift before sign-off.</dd>
-      </div>
-      <div>
-        <dt class="font-semibold">Stage 1 / Stage 2 / re-attestation</dt>
-        <dd class="ml-4 mt-1 border-l-2 border-contrast-200 pl-3 text-contrast-500">Every gate is two booleans. <strong>Stage 1</strong> is the automated check — did the required artifacts exist as of the last push? Boolean, computed deterministically. <strong>Stage 2</strong> is the human checkbox — does a person attest the artifacts are good (not just present)? Bound to a git commit. When the dependent files change after the attestation, the checkbox auto-invalidates → "needs re-attestation" — not because anyone made a mistake, but because the evidence beneath the audit shifted.</dd>
-      </div>
-    </dl>
-
-    <h3 class="mt-6 mb-2 font-heading text-base font-semibold">For developers / engineering reviewers</h3>
-    <p class="mb-2 text-sm leading-relaxed">Methodology references for the gate definitions, derivation logic, and walk-back procedures:</p>
-    <ul class="list-disc space-y-1 pl-6 text-sm leading-relaxed">
-      <li><a class="text-brand hover:underline" href={`${REPO}/docs/methodology/epic-definition-of-done.md`} target="_blank" rel="noreferrer"><code class="font-mono text-[12px]">epic-definition-of-done.md</code></a> — full 10-gate spec, v0.4 (sub-criteria, evidence requirements, edge cases)</li>
-      <li><a class="text-brand hover:underline" href={`${REPO}/docs/decisions/0021-epic-gating-map-phase-cohorts.md`} target="_blank" rel="noreferrer">ADR-0021</a> — why epics are sequenced into these specific phase cohorts</li>
-      <li><a class="text-brand hover:underline" href={`${REPO}/METHODOLOGY.md`} target="_blank" rel="noreferrer"><code class="font-mono text-[12px]">METHODOLOGY.md</code></a> — dual-track agile, trust axioms, derive-first principle</li>
-      <li><a class="text-brand hover:underline" href={`${REPO}/docs/methodology/2026-05-13-trust-restoration-lessons.md`} target="_blank" rel="noreferrer">Trust-restoration lessons (2026-05-13)</a> — why we derive evidence mechanically rather than trusting prose audits</li>
-    </ul>
-  </section>
+      <GateMatrix gates={gates} />
+    </>
+  )}
 </Layout>
+</content>
+</invoke>

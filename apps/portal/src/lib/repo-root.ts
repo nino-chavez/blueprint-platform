@@ -5,10 +5,10 @@
  * nested routes (try/scenarios, inspect/gates, etc), producing a wrong
  * anchor and an `apps/apps/...` path.
  *
- * Instead, walk up from process.cwd() looking for METHODOLOGY.md — that
- * file only exists at repo root in this project. Falls back to the
- * cwd-relative path so the loaders fail loudly with the right message if
- * the marker ever moves.
+ * Instead, walk up from process.cwd() looking for blueprint.yml — the
+ * consumer-universal marker that sits at every initiative root (the file the
+ * stamper writes and portal-config.ts reads). Falls back to cwd so the loaders
+ * still resolve (and degrade-to-empty) if the marker is ever absent.
  */
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -17,10 +17,6 @@ let _root: string | null = null;
 
 export function repoRoot(): string {
   if (_root) return _root;
-  // Marker is blueprint.yml — the consumer-universal initiative-root marker.
-  // (Template originally used METHODOLOGY.md, which only exists in the
-  // methodology SOURCE, never in a consumer initiative. See METHODOLOGY-AMENDMENTS
-  // 2026-06-04 "Pattern A portal over-coupled".)
   let dir = process.cwd();
   for (let i = 0; i < 6; i++) {
     if (existsSync(resolve(dir, 'blueprint.yml'))) {

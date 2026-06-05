@@ -1,11 +1,12 @@
 /**
  * Demo scenarios — JSON-driven storyboard previously served at
- * subs-demos.pages.dev. Source: apps/demos/scenarios.json. Read natively
+ * . Source: apps/demos/scenarios.json. Read natively
  * so /try renders scenarios in portal chrome rather than linking out.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { repoRoot } from './repo-root';
+import { portalConfig } from './portal-config';
 
 const REPO_ROOT = repoRoot();
 
@@ -66,12 +67,42 @@ interface RawScenariosFile {
   scenarios: RawScenario[];
 }
 
+const EMPTY_SCENARIOS_SUMMARY: ScenariosSummary = {
+  description: '',
+  surfaces: [],
+  scenarios: [],
+  byCategory: {},
+};
+
 let _cache: ScenariosSummary | null = null;
 
+/**
+ * Read demo scenarios from sources.scenarios. Returns the typed empty summary
+ * when the source is unconfigured (Tier 0) or missing/unreadable — never throws.
+ */
 export function loadScenarios(): ScenariosSummary {
   if (_cache) return _cache;
-  const path = resolve(REPO_ROOT, 'apps/demos/scenarios.json');
-  const raw: RawScenariosFile = JSON.parse(readFileSync(path, 'utf8'));
+  const rel = portalConfig().sources.scenarios;
+  if (!rel) {
+    _cache = EMPTY_SCENARIOS_SUMMARY;
+    return _cache;
+  }
+  let raw: RawScenariosFile;
+  try {
+    const path = resolve(REPO_ROOT, rel);
+    if (!existsSync(path)) {
+      _cache = EMPTY_SCENARIOS_SUMMARY;
+      return _cache;
+    }
+    raw = JSON.parse(readFileSync(path, 'utf8')) as RawScenariosFile;
+  } catch {
+    _cache = EMPTY_SCENARIOS_SUMMARY;
+    return _cache;
+  }
+  if (!Array.isArray(raw.scenarios)) {
+    _cache = EMPTY_SCENARIOS_SUMMARY;
+    return _cache;
+  }
 
   const scenarios: Scenario[] = raw.scenarios.map((s) => ({
     id: s.id,
@@ -97,8 +128,8 @@ export function loadScenarios(): ScenariosSummary {
   }
 
   _cache = {
-    description: raw.description,
-    surfaces: raw.surfaces.map((s) => ({ id: s.id, label: s.label })),
+    description: raw.description ?? '',
+    surfaces: Array.isArray(raw.surfaces) ? raw.surfaces.map((s) => ({ id: s.id, label: s.label })) : [],
     scenarios,
     byCategory,
   };

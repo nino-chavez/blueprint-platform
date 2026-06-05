@@ -30,7 +30,7 @@ export const Try: Story = {
   args: {
     verb: 'try',
     description:
-      'See it work, live. Catalyst storefront with subscription widgets, BC admin app, guided demo scenarios.',
+      'See it work, live. Interactive demo surfaces and guided scenarios.',
     meta: <StatusBadge status="partial" />,
   },
 };

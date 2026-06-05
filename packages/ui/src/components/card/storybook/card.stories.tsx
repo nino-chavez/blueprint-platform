@@ -32,14 +32,14 @@ export const Elevated: Story = {
   args: {
     variant: 'elevated',
     title: 'Methodology',
-    description: 'Dual-track agile, five-actor model, two substrates.',
+    description: 'A composed surface with a title and supporting copy.',
   },
 };
 
 export const WithFooter: Story = {
   args: {
-    title: 'Storefront — Catalyst',
-    description: 'React-based, deployed on Cloudflare Pages.',
+    title: 'Featured surface',
+    description: 'A card with a footer action.',
     variant: 'elevated',
     footer: (
       <>
@@ -61,7 +61,7 @@ export const Grid: Story = {
       <Card variant="elevated" title="API" description="REST + GraphQL.">
         <StatusBadge status="partial" />
       </Card>
-      <Card variant="elevated" title="SDKs" description="React, Catalyst, web-component.">
+      <Card variant="elevated" title="Surface C" description="A third example card.">
         <StatusBadge status="ready" />
       </Card>
     </div>

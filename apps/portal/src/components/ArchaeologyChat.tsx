@@ -14,7 +14,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 // REPLACE_FOR_PROJECT: set to your deployed archaeology Worker URL.
 // When empty the component renders a disabled "substrate not configured" button.
-const WORKER_URL = '';
+// Typed as `string` (not the empty-string literal) so the `if (!WORKER_URL)`
+// guard below narrows to a normal `string` in the active branch rather than
+// collapsing the rest of the component to `never` when the default is blank.
+const WORKER_URL: string = '';
 
 interface RankedEvent {
   score: number;
@@ -48,9 +51,15 @@ interface EventDetail {
 
 export interface ArchaeologyChatProps {
   pageContext: string;
+  /**
+   * Empty-state prompt suggestions, supplied at build time from
+   * portalConfig().archaeology.suggestions by the mounting layout. When empty,
+   * the component falls back to generic, project-neutral prompts.
+   */
+  suggestions?: string[];
 }
 
-export function ArchaeologyChat({ pageContext }: ArchaeologyChatProps) {
+export function ArchaeologyChat({ pageContext, suggestions = [] }: ArchaeologyChatProps) {
   if (!WORKER_URL) {
     return (
       <button
@@ -297,7 +306,7 @@ export function ArchaeologyChat({ pageContext }: ArchaeologyChatProps) {
             className="flex-1 overflow-y-auto px-4 py-4"
           >
             {messages.length === 0 && (
-              <EmptyState pageContext={pageContext} onSuggest={(q) => setInput(q)} />
+              <EmptyState pageContext={pageContext} suggestions={suggestions} onSuggest={(q) => setInput(q)} />
             )}
             {messages.map((m) => (
               <MessageView
@@ -354,8 +363,16 @@ export function ArchaeologyChat({ pageContext }: ArchaeologyChatProps) {
   );
 }
 
-function EmptyState({ pageContext, onSuggest }: { pageContext: string; onSuggest: (q: string) => void }) {
-  const suggestions = suggestionsFor(pageContext);
+function EmptyState({
+  pageContext,
+  suggestions,
+  onSuggest,
+}: {
+  pageContext: string;
+  suggestions: string[];
+  onSuggest: (q: string) => void;
+}) {
+  const prompts = suggestionsFor(pageContext, suggestions);
   return (
     <div className="space-y-4">
       <p className="text-sm text-contrast-600">
@@ -364,7 +381,7 @@ function EmptyState({ pageContext, onSuggest }: { pageContext: string; onSuggest
       <div>
         <p className="mb-2 font-mono text-[11px] uppercase tracking-wide text-contrast-500">try one of these</p>
         <div className="space-y-2">
-          {suggestions.map((s) => (
+          {prompts.map((s) => (
             <button
               key={s}
               type="button"
@@ -380,39 +397,34 @@ function EmptyState({ pageContext, onSuggest }: { pageContext: string; onSuggest
   );
 }
 
-function suggestionsFor(pageContext: string): string[] {
+/**
+ * Resolve the empty-state prompt suggestions for the current page.
+ *
+ * Priority: project-supplied `configured` prompts (from
+ * portalConfig().archaeology.suggestions) win when present. Otherwise the
+ * component falls back to generic, project-neutral defaults — augmented with a
+ * page-context-scoped prompt so each verb surface offers a relevant starter
+ * without baking in any specific project's narrative.
+ */
+function suggestionsFor(pageContext: string, configured: string[]): string[] {
+  if (configured.length > 0) return configured;
+
   const baseline = [
-    'What inputs informed the payments tokenization design?',
-    'Why did we reject terraform-gcp-platform?',
-    'Which ADR ratified the marketplace-first decision?',
+    'What decisions shaped this project?',
+    'What were the major open questions, and how were they resolved?',
+    'Which ADRs are load-bearing for the current design?',
   ];
   if (pageContext.startsWith('/inspect/gates')) {
-    return [
-      'What is the gating discipline for this project?',
-      'How is BigEng DoD reflected in the gates?',
-      ...baseline,
-    ];
+    return ['What is the gating discipline for this project?', ...baseline];
   }
   if (pageContext.startsWith('/inspect/coverage')) {
-    return [
-      'How is spec×implementation coverage derived?',
-      'Which features have the lowest coverage?',
-      ...baseline,
-    ];
+    return ['How is spec×implementation coverage derived?', ...baseline];
   }
   if (pageContext.startsWith('/roadmap')) {
-    return [
-      'What is the dev-to-main release cadence?',
-      'Which epics are in flight right now?',
-      ...baseline,
-    ];
+    return ['Which epics are in flight right now?', ...baseline];
   }
   if (pageContext.startsWith('/operate')) {
-    return [
-      'How does the merchant install flow work?',
-      'What stored-instruments pattern is used for charges?',
-      ...baseline,
-    ];
+    return ['How do the operational surfaces work?', ...baseline];
   }
   return baseline;
 }

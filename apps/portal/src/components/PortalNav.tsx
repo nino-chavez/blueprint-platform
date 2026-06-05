@@ -1,6 +1,15 @@
 import * as NavBar from '@blueprint/ui/navbar';
 import { AudienceSwitcher, useAudiencePreference } from '@blueprint/ui';
 
+// REPLACE_FOR_PROJECT_NAME — the initiative's display name (brand label).
+// Stamped from blueprint.yml `name` at stamp time; matches the token the
+// Layout uses for <title> / footer so the brand reads consistently.
+const PROJECT_NAME = 'REPLACE_FOR_PROJECT_NAME';
+
+// The 7-verb IA spine. This is the canonical Blueprint information
+// architecture and is always present regardless of which substrate sources
+// a given initiative has wired — empty verbs render their own "not
+// configured" state, they are never hidden from the nav.
 const VERBS = [
   { href: '/discover', label: 'Discover' },
   { href: '/try',      label: 'Try' },
@@ -26,8 +35,8 @@ export function PortalNav({ currentPath }: PortalNavProps) {
   return (
     <NavBar.Root>
       <NavBar.Brand href="/">
-        <img src="/project-logo.png" alt="Blueprint Platform" className="h-5 w-5 object-contain" />
-        <span>blueprint-platform</span>
+        <img src="/project-logo.png" alt={PROJECT_NAME} className="h-5 w-5 object-contain" />
+        <span>{PROJECT_NAME}</span>
       </NavBar.Brand>
       <NavBar.Switcher>
         {VERBS.map((verb) => (
@@ -35,9 +44,7 @@ export function PortalNav({ currentPath }: PortalNavProps) {
             key={verb.href}
             href={verb.href}
             active={
-              verb.href === '/'
-                ? currentPath === '/'
-                : currentPath.startsWith(verb.href)
+              currentPath === verb.href || currentPath.startsWith(`${verb.href}/`)
             }
           >
             {verb.label}

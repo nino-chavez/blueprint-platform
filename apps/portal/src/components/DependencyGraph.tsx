@@ -1,17 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { DepGraphData, EpicCompletion, GraphStatus } from '@/lib/status';
 
-// Map: GH issue number → Epic-N number, for the 27 canonical Epic-N umbrella
-// proposals. Lets the epic view render labels as "Epic N — Title (NN%)" instead
-// of the prefix-stripped raw title. Mirrors EPIC_BY_ISSUE in
-// tools/dep-graph-dashboard/render.ts.
-const EPIC_BY_ISSUE: Record<string, number> = {
-  '30': 1,  '36': 2,  '55': 3,  '37': 4,  '38': 5,  '56': 6,  '57': 7,
-  '39': 8,  '40': 9,  '31': 10, '41': 11, '42': 12, '43': 13, '32': 14,
-  '44': 15, '58': 16, '45': 17, '47': 18, '34': 19, '48': 20, '49': 21,
-  '52': 22, '35': 23, '59': 24, '50': 25, '53': 27, '54': 28,
-};
-
 const NODE_STATUS_CLASS: Record<GraphStatus, string> = {
   compliant:       'bg-success-background/40 text-success-foreground border-success/40',
   partial:         'bg-warning-background/40 text-warning-foreground border-warning/40',
@@ -125,27 +114,34 @@ function computeCriticalPath(
   return path;
 }
 
+/**
+ * Resolve a node id to an epic completion, when the consumer's derived graph
+ * keys nodes by epic number. Generic: no reference-project issue→epic map.
+ * A node id that parses as an integer present in `completions` is treated as
+ * that epic; everything else renders with its raw label and status.
+ */
+function epicForNode(id: string, completions: Map<number, EpicCompletion>): EpicCompletion | undefined {
+  const n = Number(id);
+  if (!Number.isInteger(n)) return undefined;
+  return completions.get(n);
+}
+
 function processGraph(
   data: DepGraphData,
   completions: Map<number, EpicCompletion>,
 ): ProcessedGraph {
-  const epicIds = new Set(Object.keys(EPIC_BY_ISSUE));
-  const scopedNodes = data.nodes.filter((n) => epicIds.has(n.id));
-  const scopedEdges = data.edges.filter((e) => epicIds.has(e.from) && epicIds.has(e.to));
+  // Render every node the derived artifact supplies — empty at Tier 0. No
+  // reference-project scoping; a consumer's dep-graph emitter decides the nodes.
+  const scopedNodes = data.nodes;
+  const scopedEdges = data.edges;
 
   const labelOf = (rawLabel: string, id: string): string => {
-    const epicNum = EPIC_BY_ISSUE[id];
-    if (epicNum === undefined) return rawLabel;
-    const c = completions.get(epicNum);
-    const pctSuffix = c ? ` · ${c.percentGreen}%` : '';
-    return `Epic ${epicNum} — ${rawLabel}${pctSuffix}`;
+    const c = epicForNode(id, completions);
+    return c ? `${rawLabel} · ${c.percentGreen}%` : rawLabel;
   };
   const statusOf = (rawStatus: GraphStatus, id: string): GraphStatus => {
-    const epicNum = EPIC_BY_ISSUE[id];
-    if (epicNum !== undefined && completions.has(epicNum)) {
-      return completionToStatus(completions.get(epicNum)!.percentGreen);
-    }
-    return rawStatus;
+    const c = epicForNode(id, completions);
+    return c ? completionToStatus(c.percentGreen) : rawStatus;
   };
 
   const levels = computeLevels(scopedNodes, scopedEdges);
@@ -461,6 +457,19 @@ export function DependencyGraph({ data, completions, generatedAt }: DependencyGr
   const inProgress = graph.nodes.filter((n) => n.status === 'partial').length;
   const notStarted = graph.nodes.filter((n) => n.status === 'non-compliant').length;
 
+  // Empty-state: dependency graph not configured for this initiative (Tier 0)
+  // or the derived artifact has no nodes yet. Render a neutral notice instead
+  // of an empty canvas.
+  if (graph.nodes.length === 0) {
+    return (
+      <section className="rounded-lg border border-contrast-200 bg-background px-4 py-6 text-sm text-contrast-400">
+        The dependency graph is not configured for this initiative. Wire a dep-graph source in
+        {' '}<code className="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">blueprint.yml</code>
+        {' '}to render the epic-level DAG.
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -673,10 +682,8 @@ export function DependencyGraph({ data, completions, generatedAt }: DependencyGr
       </div>
 
       <p className="font-mono text-[10px] text-contrast-400">
-        Source: <code className="rounded bg-contrast-100/60 px-1">docs/audits/derived/_dep-graph.json</code> ·
-        {' '}generated {generatedAt} · 27 epic umbrella proposals (issues #30–#59) wired by
-        {' '}<code className="rounded bg-contrast-100/60 px-1">hive-meta.blocked_by</code> ·
-        node color = percent of 10 gates green per epic · critical path = longest non-shipped chain.
+        Generated {generatedAt} · {graph.nodes.length} nodes · {graph.edges.length} dependencies ·
+        {' '}node color = percent of gates green per epic · critical path = longest non-shipped chain.
       </p>
     </section>
   );

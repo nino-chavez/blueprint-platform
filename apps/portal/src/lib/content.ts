@@ -13,6 +13,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { repoRoot } from './repo-root';
+import { portalConfig } from './portal-config';
 
 const REPO_ROOT = repoRoot();
 
@@ -33,13 +34,18 @@ export interface Excerpt {
 
 const fileCache = new Map<string, string>();
 
-function readFile(relativePath: string): string {
-  let cached = fileCache.get(relativePath);
-  if (cached) return cached;
-  const path = resolve(REPO_ROOT, relativePath);
-  cached = readFileSync(path, 'utf8');
-  fileCache.set(relativePath, cached);
-  return cached;
+/** Read a repo-relative file, returning null on any error (missing/unreadable). */
+function readFile(relativePath: string): string | null {
+  const cached = fileCache.get(relativePath);
+  if (cached != null) return cached;
+  try {
+    const path = resolve(REPO_ROOT, relativePath);
+    const content = readFileSync(path, 'utf8');
+    fileCache.set(relativePath, content);
+    return content;
+  } catch {
+    return null;
+  }
 }
 
 function githubAnchor(heading: string): string {
@@ -62,6 +68,7 @@ export function loadExcerpt(
   headingMatcher: string | RegExp,
 ): Excerpt | null {
   const content = readFile(relativePath);
+  if (content == null) return null;
   const lines = content.split('\n');
 
   let foundIdx = -1;
@@ -113,6 +120,19 @@ export function loadExcerpt(
   };
 }
 
+/**
+ * Build a "view source on the repo host" URL for a repo-relative path, using
+ * the configured repoUrl. Returns null when no repoUrl is configured (Tier 0)
+ * so pages can hide the link rather than render a broken anchor.
+ */
+export function repoLink(relativePath: string): string | null {
+  const base = portalConfig().repoUrl;
+  if (!base) return null;
+  const clean = base.replace(/\/$/, '');
+  const rel = relativePath.replace(/^\//, '');
+  return `${clean}/blob/main/${rel}`;
+}
+
 // ---------- ADR catalog ----------
 
 export interface AdrEntry {
@@ -125,13 +145,16 @@ export interface AdrEntry {
 let _adrCatalogCache: AdrEntry[] | null = null;
 
 /**
- * List ADRs sorted by number descending (newest first). Skips the 0000-template.md.
- * Each entry parses the H1 title from the file.
+ * List decision records (ADRs) sorted by number descending (newest first).
+ * The directory + filename pattern come from portalConfig().decisions, so a
+ * consumer can keep decisions under any folder ('decisions' by default) and
+ * match any naming scheme (the default tolerates an optional "ADR-" prefix).
+ * Skips the NNNN-template (number 0). Returns [] when the directory is absent.
  */
 export function loadAdrCatalog(): AdrEntry[] {
   if (_adrCatalogCache) return _adrCatalogCache;
-  // Consumer convention: decisions/ADR-NNNN-slug.md (matches blueprint-redesign).
-  const dir = resolve(REPO_ROOT, 'decisions');
+  const cfg = portalConfig().decisions;
+  const dir = resolve(REPO_ROOT, cfg.dir);
   let files: string[];
   try {
     files = readdirSync(dir);
@@ -142,11 +165,11 @@ export function loadAdrCatalog(): AdrEntry[] {
 
   const entries: AdrEntry[] = [];
   for (const filename of files) {
-    const m = /^ADR-(\d{4})-(.+)\.md$/.exec(filename);
+    const m = cfg.pattern.exec(filename);
     if (!m) continue;
     const number = parseInt(m[1]!, 10);
-    if (number === 0) continue; // skip ADR-0000-template.md
-    const slug = m[2]!;
+    if (Number.isNaN(number) || number === 0) continue; // skip template
+    const slug = m[2] ?? '';
     let title = slug.replace(/-/g, ' ');
     try {
       const body = readFileSync(resolve(dir, filename), 'utf8');

@@ -110,3 +110,67 @@ cloudflare:
 # E. Adoption & Enablement       — documented, onboarding ramp, [+]role-based paths,
 #                                  [+]support/escalation, [+]conformance certification
 # F. Team / Multi-operator       — team-adoptable, ai-hive integration
+
+# ──────────────────────────────────────────────────────────────────
+# Portal harness config — read by apps/portal/src/lib/portal-config.ts.
+# The Pattern A portal ships as a GENERIC shell; this block points it at
+# THIS initiative's deliverables. A source left null hides its IA section
+# (no Hive/state-derive substrate here — ceiling A is methodology-native).
+# ──────────────────────────────────────────────────────────────────
+portal:
+  repo_url: "https://github.com/nino-chavez/blueprint-platform"
+  decisions:
+    dir: decisions                 # decisions/ADR-NNNN — the default pattern matches the ADR- prefix
+  home:
+    hero_eyebrow: Blueprint Platform
+    hero_headline: The methodology, productized for teams.
+    hero_subhead: "A team-adoptable, portable Blueprint distribution — configurable cost, git-native access, and bidirectional non-breaking updates. Pick how you want to enter."
+  excerpts:
+    - card: discover
+      title: What it builds
+      path: README.md
+      heading: What it builds
+    - card: discover
+      title: Gap scorecard
+      path: decisions/00-charter.md
+      heading: "Gap scorecard — the operator's original six"
+    - card: discover
+      title: The expansion
+      path: decisions/00-charter.md
+      heading: "Expansion — what the original six miss (architect-surfaced)"
+    - card: discover
+      title: Scope ceiling
+      path: decisions/00-charter.md
+      heading: "Resolved — scope ceiling: A (methodology-native only)"
+  inspect:
+    docs:
+      - title: Charter
+        description: "Gap scorecard + the six productization tracks + the scope-ceiling decision."
+        path: decisions/00-charter.md
+        meta: "→ decisions/00-charter.md"
+      - title: Prescription
+        description: "What v1 ships, what defers, and the research-refined 14-step build order."
+        path: decisions/01-prescription.md
+        meta: "→ decisions/01-prescription.md"
+      - title: Stage 1 canonical research
+        description: "Vendor-canonical + internal-impl grounding for every primitive (the ADR basis)."
+        path: research/01-canonical-research.md
+        meta: "→ research/01-canonical-research.md"
+      - title: Recon synthesis
+        description: "The 6-agent gap-analysis evidence base."
+        path: research/00-recon-synthesis.md
+        meta: "→ research/00-recon-synthesis.md"
+      - title: Methodology amendments
+        description: "Dogfooding learnings from applying Blueprint to itself; candidates for promotion."
+        path: METHODOLOGY-AMENDMENTS.md
+        meta: "→ METHODOLOGY-AMENDMENTS.md"
+    axioms: []
+  sources:
+    build_order: apps/portal/src/data/build-order.json
+    scenarios: null
+    state: null
+    board: null
+    epic_footprints: null
+    attestations: null
+    proposals: null
+    dep_graph: null

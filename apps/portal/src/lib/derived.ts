@@ -12,11 +12,30 @@
  * pick those up on the next build.
  */
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { repoRoot } from './repo-root';
+import { portalConfig, type SourceKey } from './portal-config';
 
 const REPO_ROOT = repoRoot();
+
+/**
+ * Read + JSON-parse a configured source file. Returns null when the source is
+ * not configured (Tier 0) or the file is missing/unreadable — NEVER throws.
+ * This is the single degrade-to-empty primitive shared by every loader: a
+ * loader calls it, and if it gets null it returns its typed empty summary.
+ */
+function readSource<T>(key: SourceKey): T | null {
+  const rel = portalConfig().sources[key];
+  if (!rel) return null;
+  try {
+    const path = resolve(REPO_ROOT, rel);
+    if (!existsSync(path)) return null;
+    return JSON.parse(readFileSync(path, 'utf8')) as T;
+  } catch {
+    return null;
+  }
+}
 
 // ---------- _state.json (tools/state-derive) ----------
 
@@ -28,6 +47,7 @@ interface RawCapability {
     category: string;
     description: string;
     reference?: string;
+    notes?: string;
   };
   status: RawStateStatus;
 }
@@ -86,19 +106,27 @@ export interface StateSummary {
   nonCompliantItems: NonCompliantCapability[];
 }
 
+const EMPTY_STATE_SUMMARY: StateSummary = {
+  generatedAt: '',
+  commit: '',
+  total: 0,
+  compliant: 0,
+  partial: 0,
+  nonCompliant: 0,
+  manualReview: 0,
+  shippedPercent: 0,
+  categories: [],
+  nonCompliantItems: [],
+};
+
 let _stateCache: StateSummary | null = null;
 
 export function loadState(): StateSummary {
   if (_stateCache) return _stateCache;
 
-  const path = resolve(REPO_ROOT, 'docs/audits/derived/_state.json');
-  let raw: RawState;
-  try {
-    raw = JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    // Substrate (state-derive) not present in this consumer — degrade to empty
-    // rather than crash the build. See METHODOLOGY-AMENDMENTS 2026-06-04.
-    _stateCache = { generatedAt: '', commit: '', total: 0, compliant: 0, partial: 0, nonCompliant: 0, manualReview: 0, shippedPercent: 0, categories: [], nonCompliantItems: [] };
+  const raw = readSource<RawState>('state');
+  if (!raw || !Array.isArray(raw.capabilities)) {
+    _stateCache = EMPTY_STATE_SUMMARY;
     return _stateCache;
   }
 
@@ -171,14 +199,14 @@ export function loadState(): StateSummary {
   const shipped = totals.compliant + totals.partial;
 
   _stateCache = {
-    generatedAt: raw.generated_at,
-    commit: raw.as_of_commit.slice(0, 8),
+    generatedAt: raw.generated_at ?? '',
+    commit: (raw.as_of_commit ?? '').slice(0, 8),
     total,
     compliant: totals.compliant,
     partial: totals.partial,
     nonCompliant: totals.nonCompliant,
     manualReview: totals.manualReview,
-    shippedPercent: Math.round((shipped / total) * 100),
+    shippedPercent: total > 0 ? Math.round((shipped / total) * 100) : 0,
     categories,
     nonCompliantItems,
   };
@@ -241,15 +269,27 @@ export interface BoardSummary {
   readyQueue: BoardIssue[];
 }
 
+// Generic fallback bucket labels. Consumers override per-bucket labels via
+// portalConfig().board.buckets; anything unmapped falls back to the raw bucket
+// id. No reference-project bucket names live here.
 const BUCKET_LABEL: Record<string, string> = {
   'shipped-not-closed':  'Shipped (not closed)',
   'in-flight':           'In flight',
   'awaiting-dispatch':   'Awaiting dispatch',
   'awaiting-synthesis':  'Awaiting synthesis',
   'reference':           'Reference',
-  'defer-phase-2':       'Deferred to Phase 2',
-  'defer-phase-3':       'Deferred to Phase 3',
-  'defer-catalyst':      'Deferred to Catalyst',
+};
+
+const EMPTY_BOARD_SUMMARY: BoardSummary = {
+  generatedAt: '',
+  commit: '',
+  totalOpen: 0,
+  totalClosed: 0,
+  byBucket: [],
+  byPhase: { foundation: 0, phase1: 0, phase2: 0, phase3: 0, unknown: 0 },
+  inFlight: [],
+  shippedNotClosed: [],
+  readyQueue: [],
 };
 
 let _boardCache: BoardSummary | null = null;
@@ -257,20 +297,22 @@ let _boardCache: BoardSummary | null = null;
 export function loadBoard(): BoardSummary {
   if (_boardCache) return _boardCache;
 
-  const path = resolve(REPO_ROOT, 'docs/hive/_board.json');
-  let raw: RawBoard;
-  try {
-    raw = JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    // Hive board substrate not present in this consumer — degrade to empty.
-    _boardCache = { generatedAt: '', commit: '', totalOpen: 0, totalClosed: 0, byBucket: [], byPhase: { foundation: 0, phase1: 0, phase2: 0, phase3: 0, unknown: 0 }, inFlight: [], shippedNotClosed: [], readyQueue: [] };
+  const raw = readSource<RawBoard>('board');
+  if (!raw || !Array.isArray(raw.issues)) {
+    _boardCache = EMPTY_BOARD_SUMMARY;
     return _boardCache;
   }
 
-  const byBucket = Object.entries(raw.open_by_bucket)
+  // Bucket labels: consumer config wins, then the generic fallback map, then the
+  // raw bucket id.
+  const cfgBuckets = portalConfig().board.buckets;
+  const labelFor = (bucket: string): string =>
+    cfgBuckets[bucket] ?? BUCKET_LABEL[bucket] ?? bucket;
+
+  const byBucket = Object.entries(raw.open_by_bucket ?? {})
     .map(([bucket, count]) => ({
       bucket,
-      label: BUCKET_LABEL[bucket] ?? bucket,
+      label: labelFor(bucket),
       count,
     }))
     .sort((a, b) => b.count - a.count);
@@ -370,7 +412,7 @@ export interface EpicProgress {
   prCount: number;
   commitCount: number;
   fileCount: number;
-  openCount: number;    // open issues mentioning [Epic-N] in title
+  openCount: number;    // open issues whose title matches the epic-tracker pattern
   inFlightCount: number;
 }
 
@@ -380,40 +422,43 @@ export interface EpicProgressSummary {
   epics: EpicProgress[];
 }
 
+const EMPTY_EPIC_SUMMARY: EpicProgressSummary = {
+  generatedAt: '',
+  sourceCommit: '',
+  epics: [],
+};
+
 let _epicCache: EpicProgressSummary | null = null;
 
 export function loadEpicProgress(): EpicProgressSummary {
   if (_epicCache) return _epicCache;
 
-  const fpPath = resolve(REPO_ROOT, 'docs/audits/derived/_epic-footprints.json');
-  let fp: RawEpicFootprintFile;
-  try {
-    fp = JSON.parse(readFileSync(fpPath, 'utf8'));
-  } catch {
-    // Epic-footprints substrate not present in this consumer — degrade to empty.
-    _epicCache = { generatedAt: '', sourceCommit: '', epics: [] };
+  const fp = readSource<RawEpicFootprintFile>('epic_footprints');
+  if (!fp || !Array.isArray(fp.epics)) {
+    _epicCache = EMPTY_EPIC_SUMMARY;
     return _epicCache;
   }
 
-  // Reference Epic-N trackers (#30-#59 by convention) carry titles.
-  // Open-work counts come from non-reference open issues mentioning [Epic-N].
-  const board = loadBoard();
-  const boardRaw: RawBoard = JSON.parse(
-    readFileSync(resolve(REPO_ROOT, 'docs/hive/_board.json'), 'utf8'),
-  );
+  // Reference Epic-N trackers (range + title pattern from config) carry titles.
+  // Open-work counts come from non-reference open issues matching the pattern.
+  const boardRaw = readSource<RawBoard>('board');
+  const issues: RawBoardIssue[] = boardRaw && Array.isArray(boardRaw.issues) ? boardRaw.issues : [];
+  const cfg = portalConfig().board;
+  const titlePattern = cfg.epicTracker.titlePattern;
+  const [trackerLo, trackerHi] = cfg.epicTracker.range;
 
   const trackersByEpic = new Map<number, { number: number; title: string }>();
   const openByEpic = new Map<number, { open: number; inFlight: number }>();
 
-  for (const i of boardRaw.issues) {
-    const m = i.title.match(/\[Epic-(\d+)\]\s*(.+?)(?:\s*$)/);
+  for (const i of issues) {
+    const m = i.title.match(titlePattern);
     if (!m) continue;
     const epic = Number(m[1]);
-    // Tracker = lowest-numbered reference issue per epic
-    if (i.bucket === 'reference' && i.number >= 30 && i.number <= 59) {
+    // Tracker = lowest-numbered reference issue per epic, within the configured range
+    if (i.bucket === 'reference' && i.number >= trackerLo && i.number <= trackerHi) {
       const existing = trackersByEpic.get(epic);
       if (!existing || i.number < existing.number) {
-        trackersByEpic.set(epic, { number: i.number, title: m[2] });
+        trackersByEpic.set(epic, { number: i.number, title: m[2] ?? `Epic ${epic}` });
       }
     }
     // Open work = anything not in reference/shipped-not-closed
@@ -451,22 +496,107 @@ export function loadEpicProgress(): EpicProgressSummary {
   return _epicCache;
 }
 
-// ---------- docs/decisions/ ADR count ----------
+// ---------- decisions/ ADR count ----------
 
 let _adrCountCache: number | null = null;
 
 export function loadAdrCount(): number {
   if (_adrCountCache != null) return _adrCountCache;
-  const dir = resolve(REPO_ROOT, 'decisions');
+  const cfg = portalConfig().decisions;
+  const dir = resolve(REPO_ROOT, cfg.dir);
   try {
     const files = readdirSync(dir);
-    _adrCountCache = files.filter(
-      (f) => /^ADR-\d{4}-/.test(f) && f.endsWith('.md'),
-    ).length;
+    _adrCountCache = files.filter((f) => {
+      const m = cfg.pattern.exec(f);
+      if (!m) return false;
+      const n = parseInt(m[1] ?? '', 10);
+      return !Number.isNaN(n) && n !== 0;
+    }).length;
   } catch {
     _adrCountCache = 0;
   }
   return _adrCountCache;
+}
+
+// ---------- build order (sources.build_order) ----------
+
+export interface BuildOrderStep {
+  id: string;
+  title: string;
+  track?: string;
+  phase?: string;
+  status?: string;
+  dependsOn?: string[];
+}
+
+export interface BuildOrderTrack {
+  id: string;
+  label: string;
+}
+
+export interface BuildOrderSummary {
+  generatedAt: string;
+  source: string;
+  methodologyVersion: string;
+  steps: BuildOrderStep[];
+  tracks: BuildOrderTrack[];
+}
+
+interface RawBuildOrderFile {
+  generated_at?: string;
+  source?: string;
+  methodology_version?: string;
+  steps?: Array<{
+    id?: string;
+    title?: string;
+    track?: string;
+    phase?: string;
+    status?: string;
+    depends_on?: string[];
+  }>;
+  tracks?: Array<{ id?: string; label?: string }>;
+}
+
+const EMPTY_BUILD_ORDER: BuildOrderSummary = {
+  generatedAt: '',
+  source: '',
+  methodologyVersion: '',
+  steps: [],
+  tracks: [],
+};
+
+let _buildOrderCache: BuildOrderSummary | null = null;
+
+/**
+ * Read the build-order plan from sources.build_order. Returns the typed empty
+ * summary when the source is unconfigured (Tier 0) or missing — never throws.
+ */
+export function loadBuildOrder(): BuildOrderSummary {
+  if (_buildOrderCache) return _buildOrderCache;
+  const raw = readSource<RawBuildOrderFile>('build_order');
+  if (!raw) {
+    _buildOrderCache = EMPTY_BUILD_ORDER;
+    return _buildOrderCache;
+  }
+  _buildOrderCache = {
+    generatedAt: raw.generated_at ?? '',
+    source: raw.source ?? '',
+    methodologyVersion: raw.methodology_version ?? '',
+    steps: Array.isArray(raw.steps)
+      ? raw.steps.map((s) => ({
+          id: s.id ?? '',
+          title: s.title ?? '',
+          track: s.track,
+          phase: s.phase,
+          status: s.status,
+          dependsOn: Array.isArray(s.depends_on) ? s.depends_on : [],
+        }))
+      : [],
+    tracks: Array.isArray(raw.tracks)
+      ? raw.tracks.map((t) => ({ id: t.id ?? '', label: t.label ?? '' }))
+      : [],
+  };
+  return _buildOrderCache;
 }
 
 /**
@@ -477,7 +607,7 @@ export function prettifyCategory(category: string): string {
     'capability':          'BRD capabilities',
     'adr-commitment':      'ADR commitments',
     'scenario-coverage':   'Scenario coverage',
-    'bigeng-convention':   'BigEng conventions',
+    'platform-convention': 'Platform conventions',
     'nfr':                 'Non-functional reqs',
     'feature_flag_inactive': 'Feature flags (inactive)',
     'security':            'Security',

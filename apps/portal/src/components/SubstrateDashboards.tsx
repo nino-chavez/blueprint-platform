@@ -6,37 +6,32 @@ import type {
   GateCellInfo,
   CrossCuttingGroup,
 } from '@/lib/status';
+import { portalConfig } from '@/lib/portal-config';
 
-const REPO = 'https://github.com/nino-chavez/blueprint-platform';
-const ISSUES = `${REPO}/issues`;
+// ── Config-derived chrome ────────────────────────────────────────────────────
+// Repo links and gate/phase labels come from blueprint.yml (via portalConfig),
+// not from any reference project. At Tier 0 repoUrl is empty, gateLabels and
+// board.phases are empty arrays, and every surface below renders a neutral
+// empty-state instead of a broken half-section.
 
-// ============================================================================
-// Gate status — 10-gate Epic DoD matrix
-// ============================================================================
+const CFG = portalConfig();
+const REPO = CFG.repoUrl ? CFG.repoUrl.replace(/\/$/, '') : '';
+const ISSUES = REPO ? `${REPO}/issues` : '';
 
-// Canonical 10-gate Epic DoD labels from docs/methodology/epic-definition-of-done.md
-// (NOT my earlier invented labels — fixed 2026-05-20 after audit).
-const GATE_NAMES: Record<number, string> = {
-  1:  'Feature complete',
-  2:  'Hardened',
-  3:  'Security reviewed',
-  4:  'Performance baselined',
-  5:  'Tested at risk-appropriate rates',
-  6:  'Documented',
-  7:  'User-guided',
-  8:  'Demo-asset-ready',
-  9:  'Knowledge-transferred',
-  10: 'Change-managed',
-};
+/** Configured gate labels, indexed 1..N. Falls back to "Gate N" when unset. */
+const GATE_LABELS = CFG.gates.gateLabels;
+function gateName(n: number): string {
+  const label = GATE_LABELS[n - 1];
+  return label && label.length > 0 ? label : `Gate ${n}`;
+}
+/** Full per-cell heading: "Gate N — <label>" when a label is configured. */
+function gateHeading(n: number): string {
+  const label = GATE_LABELS[n - 1];
+  return label && label.length > 0 ? `Gate ${n} — ${label}` : `Gate ${n}`;
+}
 
-// Phase narrative labels from ADR-0021 (epic-gating-map-phase-cohorts).
-const PHASE_LABELS: Record<string, { title: string; subtitle: string }> = {
-  '1a': { title: 'Phase 1a',  subtitle: 'Real merchant can install + run one cycle' },
-  '1b': { title: 'Phase 1b',  subtitle: 'Real merchant can manage subscribers via storefront' },
-  '2':  { title: 'Phase 2',   subtitle: 'Full features behind 1a/1b foundation' },
-  '3':  { title: 'Phase 3',   subtitle: 'Advanced' },
-};
-const PHASE_ORDER = ['1a', '1b', '2', '3'];
+/** Configured phase order. Empty at Tier 0 — epics then group under a single bucket. */
+const PHASE_ORDER = CFG.board.phases;
 
 const COLOR_BG: Record<GateColor, string> = {
   green:  'bg-success',
@@ -65,11 +60,11 @@ function cellTooltip(info: GateCellInfo): string {
   if (!info.attested) {
     stage2 = 'Stage 2 ☐ awaiting human attestation';
   } else if (info.attestation_freshness === 'fresh') {
-    stage2 = `Stage 2 ✓ attested ${info.attested.on}`;
+    stage2 = `Stage 2 ✓ attested ${info.attested.attested_at}`;
   } else if (info.attestation_freshness === 'stale') {
-    stage2 = `Stage 2 ⊘ attestation stale — files changed since ${info.attested.on}; needs re-attestation`;
+    stage2 = `Stage 2 ⊘ attestation stale — files changed since ${info.attested.attested_at}; needs re-attestation`;
   } else {
-    stage2 = `Stage 2 ? attestation unverified (${info.attested.on})`;
+    stage2 = `Stage 2 ? attestation unverified (${info.attested.attested_at})`;
   }
   return `${stage1}\n${stage2}\n${info.mechanical_note}`;
 }
@@ -104,6 +99,20 @@ function EpicRow({ epic }: { epic: GateStatusSummary['epics'][number] }) {
     pct >= 80 ? 'text-success-foreground' :
     pct >= 40 ? 'text-warning-foreground' :
     'text-error-foreground';
+  // Link to the epic's audit doc on the repo host only when both a repoUrl and
+  // an audit-doc filename are known; otherwise render plain text.
+  const auditHref = REPO && epic.filename ? `${REPO}/blob/main/${epic.filename}` : null;
+  const titleBlock = (
+    <>
+      <span className="font-mono text-[10px] text-contrast-400">Epic {epic.epic}</span>
+      <p
+        className={`truncate text-sm text-foreground ${auditHref ? 'hover:text-brand' : ''}`}
+        title={auditHref ? `${epic.title} — open audit doc` : epic.title}
+      >
+        {epic.title}
+      </p>
+    </>
+  );
   return (
     <tr className="hover:bg-contrast-100/40">
       <th
@@ -111,20 +120,13 @@ function EpicRow({ epic }: { epic: GateStatusSummary['epics'][number] }) {
         className="sticky left-0 z-10 border-b border-contrast-100 bg-background px-3 py-2 text-left align-middle font-normal"
       >
         <div className="flex items-baseline gap-2">
-          <a
-            href={`${REPO}/blob/main/docs/audits/epic-dod/${epic.filename}`}
-            target="_blank"
-            rel="noreferrer"
-            className="flex-1 min-w-0"
-          >
-            <span className="font-mono text-[10px] text-contrast-400">Epic {epic.epic}</span>
-            <p
-              className="truncate text-sm text-foreground hover:text-brand"
-              title={`${epic.title} — open audit doc`}
-            >
-              {epic.title}
-            </p>
-          </a>
+          {auditHref ? (
+            <a href={auditHref} target="_blank" rel="noreferrer" className="flex-1 min-w-0">
+              {titleBlock}
+            </a>
+          ) : (
+            <span className="flex-1 min-w-0">{titleBlock}</span>
+          )}
           {epic.riskTier && (
             <span
               className={`shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase ${RISK_TONES[epic.riskTier] ?? 'bg-contrast-100 text-contrast-500'}`}
@@ -141,10 +143,10 @@ function EpicRow({ epic }: { epic: GateStatusSummary['epics'][number] }) {
           color: 'gray',
           mechanical_passing: false,
           mechanical_note: 'no data',
-          attestation_freshness: 'unattested',
+          attestation_freshness: 'none',
           needs_reattestation: false,
         };
-        return <GateDot key={gn} info={info} gateName={`Gate ${gn} — ${GATE_NAMES[gn]}`} />;
+        return <GateDot key={gn} info={info} gateName={gateHeading(gn)} />;
       })}
       <td className={`border-b border-contrast-100 px-3 py-2 text-right align-middle font-mono text-xs font-medium ${tone}`}>
         {pct}%
@@ -154,6 +156,18 @@ function EpicRow({ epic }: { epic: GateStatusSummary['epics'][number] }) {
 }
 
 export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
+  // Empty-state: gates not configured for this initiative (Tier 0), or no epics
+  // derived yet. Render a neutral notice rather than an empty grid.
+  if (gates.epics.length === 0) {
+    return (
+      <div className="rounded-lg border border-contrast-200 bg-background px-4 py-6 text-sm text-contrast-400">
+        Gate status is not configured for this initiative. Wire an epics source in
+        {' '}<code className="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">blueprint.yml</code>
+        {' '}(<code className="font-mono text-[11px]">portal.gates</code>) to populate the compliance matrix.
+      </div>
+    );
+  }
+
   const scoredCells = gates.totals.green + gates.totals.yellow + gates.totals.red;
   const greenPctOfScored = scoredCells > 0 ? Math.round((gates.totals.green / scoredCells) * 100) : 0;
 
@@ -165,6 +179,13 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
     byPhase.get(p)!.push(e);
   }
   for (const list of byPhase.values()) list.sort((a, b) => a.epic - b.epic);
+
+  // Phase rendering order: configured phases first, then any remaining phases
+  // present in the data (so nothing is dropped when board.phases is empty).
+  const orderedPhases = [
+    ...PHASE_ORDER.filter((p) => byPhase.has(p)),
+    ...Array.from(byPhase.keys()).filter((p) => !PHASE_ORDER.includes(p)),
+  ];
 
   return (
     <div className="space-y-4">
@@ -202,7 +223,7 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
                 <th
                   key={i + 1}
                   className="border-b border-contrast-200 px-1 py-2 text-center font-mono text-[10px] uppercase tracking-wide text-contrast-400"
-                  title={`Gate ${i + 1} — ${GATE_NAMES[i + 1]}`}
+                  title={gateHeading(i + 1)}
                 >
                   {i + 1}
                 </th>
@@ -212,9 +233,8 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
               </th>
             </tr>
           </thead>
-          {PHASE_ORDER.filter((p) => byPhase.has(p)).map((phase) => {
+          {orderedPhases.map((phase) => {
             const list = byPhase.get(phase)!;
-            const meta = PHASE_LABELS[phase] ?? { title: `Phase ${phase}`, subtitle: '' };
             const phaseGreen = list.reduce(
               (sum, e) => sum + Object.values(e.gates).filter((c) => c === 'green').length,
               0,
@@ -224,6 +244,7 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
               0,
             );
             const phasePct = phaseScored > 0 ? Math.round((phaseGreen / phaseScored) * 100) : 0;
+            const phaseTitle = phase === '?' ? 'Unphased' : phase;
             return (
               <tbody key={phase}>
                 <tr className="bg-contrast-100/50">
@@ -233,8 +254,7 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
                   >
                     <div className="flex items-baseline justify-between gap-3">
                       <div>
-                        <span className="font-heading text-sm font-semibold text-foreground">{meta.title}</span>
-                        <span className="ml-2 text-xs font-normal text-contrast-500">{meta.subtitle}</span>
+                        <span className="font-heading text-sm font-semibold text-foreground">{phaseTitle}</span>
                       </div>
                       <span className="font-mono text-[11px] text-contrast-500">
                         {list.length} epics · {phaseGreen}/{phaseScored} green ({phasePct}%)
@@ -251,31 +271,44 @@ export function GateMatrix({ gates }: { gates: GateStatusSummary }) {
         </table>
       </div>
 
-      <details className="rounded-lg border border-contrast-200 bg-background">
-        <summary className="cursor-pointer select-none px-4 py-2 text-xs font-medium text-contrast-500 hover:bg-contrast-100/50">
-          Gate definitions
-        </summary>
-        <ol className="border-t border-contrast-200 p-4 space-y-1 text-xs">
-          {Object.entries(GATE_NAMES).map(([num, name]) => (
-            <li key={num} className="flex gap-3">
-              <span className="w-6 shrink-0 font-mono text-contrast-400">{num}</span>
-              <span className="text-foreground">{name}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="border-t border-contrast-200 px-4 py-2 font-mono text-[10px] text-contrast-400">
-          Framework: <a href={`${REPO}/blob/main/docs/methodology/epic-definition-of-done.md`} target="_blank" rel="noreferrer" className="text-brand hover:underline">epic-definition-of-done.md</a> · ratified per <a href={`${REPO}/blob/main/docs/decisions/0057-epic-dod-upstream-to-big-blueprint.md`} target="_blank" rel="noreferrer" className="text-brand hover:underline">ADR-0057</a> · phase cohorts per <a href={`${REPO}/blob/main/docs/decisions/0021-epic-gating-map-phase-cohorts.md`} target="_blank" rel="noreferrer" className="text-brand hover:underline">ADR-0021</a>.
-        </p>
-      </details>
+      {GATE_LABELS.some((l) => l.length > 0) && (
+        <details className="rounded-lg border border-contrast-200 bg-background">
+          <summary className="cursor-pointer select-none px-4 py-2 text-xs font-medium text-contrast-500 hover:bg-contrast-100/50">
+            Gate definitions
+          </summary>
+          <ol className="border-t border-contrast-200 p-4 space-y-1 text-xs">
+            {Array.from({ length: 10 }).map((_, i) => {
+              const n = i + 1;
+              const label = GATE_LABELS[i];
+              if (!label) return null;
+              return (
+                <li key={n} className="flex gap-3">
+                  <span className="w-6 shrink-0 font-mono text-contrast-400">{n}</span>
+                  <span className="text-foreground">{label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </details>
+      )}
     </div>
   );
 }
 
 // ============================================================================
-// Cross-cutting capabilities — substrate-level signal from _state.json that
-// doesn't map to a per-epic gate (BigEng conventions, ADR commitments, NFRs,
-// persona scenarios, CI hygiene).
+// Cross-cutting capabilities — substrate-level signal that doesn't map to a
+// per-epic gate (platform conventions, ratified decisions, NFRs, scenario
+// coverage, CI hygiene). Consumes the generic CrossCuttingGroup roll-up shape
+// from @blueprint/gate-derive; empty by default at Tier 0.
 // ============================================================================
+
+/** Roll-up color for a group: green when fully compliant, red when none, else yellow. */
+function rollupColor(g: CrossCuttingGroup): GateColor {
+  if (g.total === 0) return 'gray';
+  if (g.compliant === g.total) return 'green';
+  if (g.compliant === 0 && g.partial === 0 && g.manualReview === 0) return 'red';
+  return 'yellow';
+}
 
 const GROUP_ROLLUP_TONES: Record<GateColor, string> = {
   green:  'border-success/30 bg-success-background/40 text-success-foreground',
@@ -284,61 +317,58 @@ const GROUP_ROLLUP_TONES: Record<GateColor, string> = {
   gray:   'border-contrast-200 bg-contrast-100/30 text-contrast-500',
 };
 
-const STATUS_TONES: Record<string, string> = {
-  COMPLIANT:       'bg-success-background text-success-foreground',
-  MANUAL_REVIEW:   'bg-info-background text-info-foreground',
-  PARTIAL:         'bg-warning-background text-warning-foreground',
-  'NON-COMPLIANT': 'bg-error-background text-error-foreground',
-  ABSENT:          'bg-contrast-100 text-contrast-500',
-  ERROR:           'bg-error-background text-error-foreground',
+const COUNT_TONES: Record<string, string> = {
+  compliant:    'bg-success-background text-success-foreground',
+  manualReview: 'bg-info-background text-info-foreground',
+  partial:      'bg-warning-background text-warning-foreground',
+  nonCompliant: 'bg-error-background text-error-foreground',
 };
 
-function rollupColor(state: string): GateColor {
-  if (state === 'unknown') return 'gray';
-  return state as GateColor;
-}
+const COUNT_LABELS: Record<string, string> = {
+  compliant:    'compliant',
+  partial:      'partial',
+  nonCompliant: 'non-compliant',
+  manualReview: 'manual review',
+};
 
 export function CrossCuttingMatrix({ groups }: { groups: CrossCuttingGroup[] }) {
+  if (groups.length === 0) {
+    return (
+      <div className="rounded-lg border border-contrast-200 bg-background px-4 py-6 text-sm text-contrast-400">
+        Cross-cutting capabilities are not configured for this initiative. Wire a state-derive
+        source to populate substrate-level roll-ups.
+      </div>
+    );
+  }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {groups.map((g) => {
-          const rc = rollupColor(g.rollup);
-          const total = g.capabilities.length;
+          const rc = rollupColor(g);
+          const counts: Array<[string, number]> = [
+            ['compliant', g.compliant],
+            ['partial', g.partial],
+            ['nonCompliant', g.nonCompliant],
+            ['manualReview', g.manualReview],
+          ];
           return (
-            <details key={g.id} className={`rounded-lg border p-4 ${GROUP_ROLLUP_TONES[rc]}`}>
-              <summary className="cursor-pointer select-none list-none">
-                <div className="flex items-baseline justify-between gap-3">
-                  <div>
-                    <p className="font-heading text-sm font-semibold text-foreground">{g.title}</p>
-                    <p className="mt-1 text-xs text-contrast-500">{g.description}</p>
-                  </div>
-                  <span className="shrink-0 font-mono text-xs">
-                    {g.counts.COMPLIANT}/{total}
-                  </span>
-                </div>
-                <div className="mt-2 flex gap-2 font-mono text-[10px]">
-                  {(Object.entries(g.counts) as Array<[string, number]>)
-                    .filter(([, v]) => v > 0)
-                    .map(([k, v]) => (
-                      <span key={k} className={`rounded px-1.5 py-0.5 ${STATUS_TONES[k] ?? ''}`}>
-                        {v} {k}
-                      </span>
-                    ))}
-                </div>
-              </summary>
-              <ul className="mt-3 space-y-1.5 border-t border-contrast-200 pt-3 text-xs">
-                {g.capabilities.slice(0, 50).map((c) => (
-                  <li key={c.id} className="flex items-baseline gap-2">
-                    <span className={`shrink-0 rounded px-1 font-mono text-[9px] ${STATUS_TONES[c.status] ?? ''}`}>
-                      {c.status[0]}
+            <div key={g.id} className={`rounded-lg border p-4 ${GROUP_ROLLUP_TONES[rc]}`}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-heading text-sm font-semibold text-foreground">{g.label}</p>
+                <span className="shrink-0 font-mono text-xs">
+                  {g.compliant}/{g.total}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2 font-mono text-[10px]">
+                {counts
+                  .filter(([, v]) => v > 0)
+                  .map(([k, v]) => (
+                    <span key={k} className={`rounded px-1.5 py-0.5 ${COUNT_TONES[k] ?? ''}`}>
+                      {v} {COUNT_LABELS[k] ?? k}
                     </span>
-                    <code className="text-[11px] text-contrast-500">{c.id}</code>
-                    <span className="text-contrast-400">— {c.description}</span>
-                  </li>
-                ))}
-              </ul>
-            </details>
+                  ))}
+              </div>
+            </div>
           );
         })}
       </div>
@@ -365,6 +395,16 @@ const GATING_TONES: Record<string, string> = {
 };
 
 export function AttestationList({ atts }: { atts: AttestationsSummary }) {
+  if (atts.total === 0) {
+    return (
+      <div className="rounded-lg border border-contrast-200 bg-background px-4 py-6 text-sm text-contrast-400">
+        Attestations are not configured for this initiative. Wire an attestations source in
+        {' '}<code className="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">blueprint.yml</code>
+        {' '}to track manual sign-offs.
+      </div>
+    );
+  }
+
   const groups: Array<{ gating: string; items: AttestationsSummary['attestations'] }> = [];
   for (const gating of ['marketplace-blocking', 'ga-blocking', 'soft-gating', 'informational']) {
     const items = atts.attestations.filter((a) => a.gating === gating);
@@ -411,7 +451,7 @@ export function AttestationList({ atts }: { atts: AttestationsSummary }) {
                   <span>phase: {a.phase}</span>
                   {a.human_owner && <span>owner: {a.human_owner}</span>}
                   {a.expires_after_days && <span>expires after: {a.expires_after_days}d</span>}
-                  {a.related_hive.length > 0 && (
+                  {a.related_hive.length > 0 && ISSUES && (
                     <span>
                       hive:{' '}
                       {a.related_hive.map((n, i) => (
@@ -448,6 +488,18 @@ function cleanTitle(t: string): string {
 }
 
 export function DependencyView({ deps }: { deps: DependenciesSummary }) {
+  if (deps.totalOpen === 0 && deps.topBlockers.length === 0) {
+    return (
+      <div className="rounded-lg border border-contrast-200 bg-background px-4 py-6 text-sm text-contrast-400">
+        Dependencies are not configured for this initiative. Wire a proposals source in
+        {' '}<code className="rounded bg-contrast-100/60 px-1 font-mono text-[11px]">blueprint.yml</code>
+        {' '}to surface blocking chains.
+      </div>
+    );
+  }
+
+  const issueLink = (n: number) => (ISSUES ? `${ISSUES}/${n}` : null);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -472,51 +524,63 @@ export function DependencyView({ deps }: { deps: DependenciesSummary }) {
         </div>
       ) : (
         <ul className="space-y-3">
-          {deps.topBlockers.map((chain) => (
-            <li key={chain.blocker.number} className="rounded-lg border border-contrast-200 bg-background p-4">
-              <header className="mb-2 flex items-baseline gap-3">
-                <a
-                  href={`${ISSUES}/${chain.blocker.number}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-xs text-contrast-400 hover:text-brand"
-                >
-                  #{chain.blocker.number}
-                </a>
-                <p className="flex-1 text-sm font-medium text-foreground">{cleanTitle(chain.blocker.title)}</p>
-                <span className="shrink-0 rounded bg-warning-background px-2 py-0.5 font-mono text-[10px] uppercase text-warning-foreground">
-                  blocks {chain.blocked.length}
-                </span>
-              </header>
-              <ul className="ml-4 space-y-1 border-l border-contrast-200 pl-3">
-                {chain.blocked.slice(0, 5).map((b) => (
-                  <li key={b.number} className="flex items-baseline gap-2 text-xs">
-                    <span className="font-mono text-contrast-400">→ #{b.number}</span>
+          {deps.topBlockers.map((chain) => {
+            const blockerHref = issueLink(chain.blocker.number);
+            return (
+              <li key={chain.blocker.number} className="rounded-lg border border-contrast-200 bg-background p-4">
+                <header className="mb-2 flex items-baseline gap-3">
+                  {blockerHref ? (
                     <a
-                      href={`${ISSUES}/${b.number}`}
+                      href={blockerHref}
                       target="_blank"
                       rel="noreferrer"
-                      className="truncate text-contrast-500 hover:text-brand"
-                      title={b.title}
+                      className="font-mono text-xs text-contrast-400 hover:text-brand"
                     >
-                      {cleanTitle(b.title)}
+                      #{chain.blocker.number}
                     </a>
-                  </li>
-                ))}
-                {chain.blocked.length > 5 && (
-                  <li className="font-mono text-[10px] text-contrast-400">
-                    +{chain.blocked.length - 5} more
-                  </li>
-                )}
-              </ul>
-            </li>
-          ))}
+                  ) : (
+                    <span className="font-mono text-xs text-contrast-400">#{chain.blocker.number}</span>
+                  )}
+                  <p className="flex-1 text-sm font-medium text-foreground">{cleanTitle(chain.blocker.title)}</p>
+                  <span className="shrink-0 rounded bg-warning-background px-2 py-0.5 font-mono text-[10px] uppercase text-warning-foreground">
+                    blocks {chain.blocked.length}
+                  </span>
+                </header>
+                <ul className="ml-4 space-y-1 border-l border-contrast-200 pl-3">
+                  {chain.blocked.slice(0, 5).map((b) => {
+                    const bHref = issueLink(b.number);
+                    return (
+                      <li key={b.number} className="flex items-baseline gap-2 text-xs">
+                        <span className="font-mono text-contrast-400">→ #{b.number}</span>
+                        {bHref ? (
+                          <a
+                            href={bHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="truncate text-contrast-500 hover:text-brand"
+                            title={b.title}
+                          >
+                            {cleanTitle(b.title)}
+                          </a>
+                        ) : (
+                          <span className="truncate text-contrast-500" title={b.title}>
+                            {cleanTitle(b.title)}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {chain.blocked.length > 5 && (
+                    <li className="font-mono text-[10px] text-contrast-400">
+                      +{chain.blocked.length - 5} more
+                    </li>
+                  )}
+                </ul>
+              </li>
+            );
+          })}
         </ul>
       )}
-      <p className="font-mono text-[10px] text-contrast-400">
-        Source: <code>docs/hive/_proposals.json</code> · 'blocks N' = open proposals citing this in
-        their <code>hive-meta.blocked_by</code>. For the queue view (next dispatchable), see <a className="text-brand hover:underline" href="/roadmap">Roadmap</a>.
-      </p>
     </div>
   );
 }
