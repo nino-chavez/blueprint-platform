@@ -17,9 +17,13 @@ let _root: string | null = null;
 
 export function repoRoot(): string {
   if (_root) return _root;
+  // Marker is blueprint.yml — the consumer-universal initiative-root marker.
+  // (Template originally used METHODOLOGY.md, which only exists in the
+  // methodology SOURCE, never in a consumer initiative. See METHODOLOGY-AMENDMENTS
+  // 2026-06-04 "Pattern A portal over-coupled".)
   let dir = process.cwd();
   for (let i = 0; i < 6; i++) {
-    if (existsSync(resolve(dir, 'METHODOLOGY.md'))) {
+    if (existsSync(resolve(dir, 'blueprint.yml'))) {
       _root = dir;
       return _root;
     }

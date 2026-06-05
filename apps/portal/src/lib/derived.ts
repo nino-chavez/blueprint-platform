@@ -92,7 +92,15 @@ export function loadState(): StateSummary {
   if (_stateCache) return _stateCache;
 
   const path = resolve(REPO_ROOT, 'docs/audits/derived/_state.json');
-  const raw: RawState = JSON.parse(readFileSync(path, 'utf8'));
+  let raw: RawState;
+  try {
+    raw = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    // Substrate (state-derive) not present in this consumer — degrade to empty
+    // rather than crash the build. See METHODOLOGY-AMENDMENTS 2026-06-04.
+    _stateCache = { generatedAt: '', commit: '', total: 0, compliant: 0, partial: 0, nonCompliant: 0, manualReview: 0, shippedPercent: 0, categories: [], nonCompliantItems: [] };
+    return _stateCache;
+  }
 
   const totals = { compliant: 0, partial: 0, nonCompliant: 0, manualReview: 0 };
   const byCategory = new Map<string, CategorySummary>();
@@ -250,7 +258,14 @@ export function loadBoard(): BoardSummary {
   if (_boardCache) return _boardCache;
 
   const path = resolve(REPO_ROOT, 'docs/hive/_board.json');
-  const raw: RawBoard = JSON.parse(readFileSync(path, 'utf8'));
+  let raw: RawBoard;
+  try {
+    raw = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    // Hive board substrate not present in this consumer — degrade to empty.
+    _boardCache = { generatedAt: '', commit: '', totalOpen: 0, totalClosed: 0, byBucket: [], byPhase: { foundation: 0, phase1: 0, phase2: 0, phase3: 0, unknown: 0 }, inFlight: [], shippedNotClosed: [], readyQueue: [] };
+    return _boardCache;
+  }
 
   const byBucket = Object.entries(raw.open_by_bucket)
     .map(([bucket, count]) => ({
@@ -371,7 +386,14 @@ export function loadEpicProgress(): EpicProgressSummary {
   if (_epicCache) return _epicCache;
 
   const fpPath = resolve(REPO_ROOT, 'docs/audits/derived/_epic-footprints.json');
-  const fp: RawEpicFootprintFile = JSON.parse(readFileSync(fpPath, 'utf8'));
+  let fp: RawEpicFootprintFile;
+  try {
+    fp = JSON.parse(readFileSync(fpPath, 'utf8'));
+  } catch {
+    // Epic-footprints substrate not present in this consumer — degrade to empty.
+    _epicCache = { generatedAt: '', sourceCommit: '', epics: [] };
+    return _epicCache;
+  }
 
   // Reference Epic-N trackers (#30-#59 by convention) carry titles.
   // Open-work counts come from non-reference open issues mentioning [Epic-N].
@@ -435,11 +457,11 @@ let _adrCountCache: number | null = null;
 
 export function loadAdrCount(): number {
   if (_adrCountCache != null) return _adrCountCache;
-  const dir = resolve(REPO_ROOT, 'docs/decisions');
+  const dir = resolve(REPO_ROOT, 'decisions');
   try {
     const files = readdirSync(dir);
     _adrCountCache = files.filter(
-      (f) => /^\d{4}-/.test(f) && f.endsWith('.md') && !f.startsWith('0000-'),
+      (f) => /^ADR-\d{4}-/.test(f) && f.endsWith('.md'),
     ).length;
   } catch {
     _adrCountCache = 0;

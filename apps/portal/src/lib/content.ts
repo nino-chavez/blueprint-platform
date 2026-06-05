@@ -130,7 +130,8 @@ let _adrCatalogCache: AdrEntry[] | null = null;
  */
 export function loadAdrCatalog(): AdrEntry[] {
   if (_adrCatalogCache) return _adrCatalogCache;
-  const dir = resolve(REPO_ROOT, 'docs/decisions');
+  // Consumer convention: decisions/ADR-NNNN-slug.md (matches blueprint-redesign).
+  const dir = resolve(REPO_ROOT, 'decisions');
   let files: string[];
   try {
     files = readdirSync(dir);
@@ -141,10 +142,10 @@ export function loadAdrCatalog(): AdrEntry[] {
 
   const entries: AdrEntry[] = [];
   for (const filename of files) {
-    const m = /^(\d{4})-(.+)\.md$/.exec(filename);
+    const m = /^ADR-(\d{4})-(.+)\.md$/.exec(filename);
     if (!m) continue;
     const number = parseInt(m[1]!, 10);
-    if (number === 0) continue; // skip 0000-template.md
+    if (number === 0) continue; // skip ADR-0000-template.md
     const slug = m[2]!;
     let title = slug.replace(/-/g, ' ');
     try {
