@@ -17,7 +17,7 @@ interface BuildSurface {
 }
 
 // SURFACES come from blueprint.yml's portal.surfaces block. Empty at Tier-0;
-// REPLACE_FOR_PROJECT: add integration surfaces (API refs, SDKs, component
+// : add integration surfaces (API refs, SDKs, component
 // libraries, design tokens) as the initiative ships them.
 const SURFACES: BuildSurface[] = cfg.surfaces.map((s: any) => ({
   title: String(s?.title ?? ''),

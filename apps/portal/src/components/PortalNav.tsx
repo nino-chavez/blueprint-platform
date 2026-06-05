@@ -17,7 +17,6 @@ const VERBS = [
   { href: '/operate',  label: 'Operate' },
   { href: '/inspect',  label: 'Inspect' },
   { href: '/roadmap',  label: 'Roadmap' },
-  { href: '/strategy', label: 'Strategy' },
 ] as const;
 
 export interface PortalNavProps {

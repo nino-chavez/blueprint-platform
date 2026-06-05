@@ -17,7 +17,7 @@ interface PlannedItem {
 }
 
 // Operational playbooks come from blueprint.yml's portal.operate block.
-// REPLACE_FOR_PROJECT: list available runbooks under operate.items and
+// : list available runbooks under operate.items and
 // upcoming guides under operate.planned. Empty at Tier-0.
 const items: OperateItem[] = cfg.operate.items.map((i: any) => ({
   title: String(i?.title ?? ''),

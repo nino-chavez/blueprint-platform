@@ -12,7 +12,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
  * supports it.
  */
 
-// REPLACE_FOR_PROJECT: set to your deployed archaeology Worker URL.
+// : set to your deployed archaeology Worker URL.
 // When empty the component renders a disabled "substrate not configured" button.
 // Typed as `string` (not the empty-string literal) so the `if (!WORKER_URL)`
 // guard below narrows to a normal `string` in the active branch rather than

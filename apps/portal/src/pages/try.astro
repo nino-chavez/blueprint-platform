@@ -8,7 +8,7 @@ const { surfaces, features } = portalConfig();
 
 // Surfaces are declared in blueprint.yml's portal.surfaces and resolved to a
 // generic shape here. A freshly-stamped Tier-0 portal has no surfaces → empty
-// state. REPLACE_FOR_PROJECT: add live-demo surfaces under portal.surfaces.
+// state. : add live-demo surfaces under portal.surfaces.
 const VALID_STATUS: Status[] = ['ready', 'partial', 'missing', 'not-applicable', 'planned'];
 const SURFACES = surfaces.map((s: any, i: number) => ({
   id: typeof s?.id === 'string' && s.id.length > 0 ? s.id : `surface-${i}`,
