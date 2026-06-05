@@ -1,30 +1,35 @@
-# blueprint-platform
+# blueprint-platform — folded into Blueprint (archived)
 
-Blueprint applied to itself — the **productization pass.** Turns the Blueprint methodology from a single-operator workflow into a team-adoptable, portable platform.
+> **This repository is archived (read-only) as of 2026-06-05.**
+> Its work was **folded into the canonical Blueprint repo** as Blueprint's own
+> in-repo self-application — "the compiler that compiles itself."
 
-**Methodology source** (canonical, do not edit without waiver): `tools/blueprint/`
-**Extends:** `wip/blueprint-redesign/` (v1-solo foundation: ADR-0001/0002, inherited verbatim)
+## What happened
 
-## What it builds
+`blueprint-platform` was the productization dogfood: Blueprint applied to itself
+to turn the methodology into a team-adoptable, portable platform. That work is
+complete and now lives **inside the methodology source** (`nino-chavez/blueprint`),
+not as a separate consumer repo. The separation was retired because the
+source-vs-consumer boundary that keeps the methodology reusable is a **directory
+boundary** (`template/` is what external consumers stamp), not a repo boundary —
+so the methodology can host its own reference implementation without losing reuse.
 
-The operator's six requirements + architect-surfaced additions, grouped into six tracks:
+## Where everything went
 
-| Track | Operator-named | Architect-surfaced [+] |
-|---|---|---|
-| A. Distribution & Versioning | portable, bidirectional updates | consumer registry/fleet, semver + deprecation, contract tests |
-| B. Configurability & Cost | configurable cost dial | telemetry/observability, FinOps budgets |
-| C. Access & Governance | access control | promotion governance, security/supply-chain, licensing, identity |
-| D. Extensibility | — | plugin model (org-authored reviewers/stages), catalog |
-| E. Adoption & Enablement | documented, onboarding ramp | role-based paths, support/escalation, conformance certification |
-| F. Team / Multi-operator | team-adoptable | ai-hive integration (integrate, not absorb) |
+| Was here | Now lives at (`nino-chavez/blueprint`) |
+|---|---|
+| `apps/portal/` | `apps/portal/` — the live Pattern A reference portal + onboarding KB |
+| `packages/` | `packages/` (`@blueprint/ui`, `design-tokens`, `gate-derive`) |
+| `research/`, `decisions/` | `research/`, `decisions/` (ADRs already canon at `docs/decisions/ADR-0003..0007`) |
+| `tools/archaeology/` | `tools/archaeology/` — the live event-sourced provenance substrate |
+| `blueprint.yml` | root `blueprint.yml` (the self-application config) |
+| deployed portal | same Pages project, now deployed **from the canonical repo** |
 
-## Status
+## The history is preserved
 
-**Stage 0 — charter drafted; one decision gates Stage 2.** Variant: brownfield. Tier: 2. Pattern: B.
+Nothing was lost. The full productization history — recon, canonical research,
+ADR deliberation, design workflows — is queryable via the **archaeology substrate**
+(`tools/archaeology/`, 949 events / 1165 chunks over the 13 productization
+sessions), and the git history of this repo remains intact here in the archive.
 
-Read in order:
-1. `decisions/00-charter.md` — requirements, gap scorecard, expansion, the open scope-ceiling decision, defaults, risks
-2. `research/00-recon-synthesis.md` — the 6-agent recon evidence base
-3. `CLAUDE.md` — repo charter, methodology-freeze + promotion path, stage sequence
-
-**Blocking decision:** the scope ceiling (methodology-native / native-core-+-thin-control-plane / full SaaS). See charter § Open decision.
+See `nino-chavez/blueprint` → `WAVE-LOG.md` (wave 45) for the fold record.
